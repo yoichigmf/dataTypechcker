@@ -31,39 +31,102 @@ def   checkShapeFile( inputfile  , outputfile, resultfile):
 
         layer_defn = layer.GetLayerDefn()
 
-        keyname = layer_defn.GetFieldDefn(0).GetName()
-        #print(keyname )
-        layer.ResetReading()
+        fcount = layer_defn.GetFieldCount()
+        #  field 数取得
 
-        for feature in layer:
-            tgdata = feature. GetField(keyname)
+        if fcount > 0:
+        #if 
+               keyname = layer_defn.GetFieldDefn(0).GetName()
+        #print(keyname )
+               layer.ResetReading()
+
+               for feature in layer:
+                    tgdata = feature. GetField(keyname)
             #print( feature. GetField(keyname))
 
-            if isinstance(tgdata, long):
-                tglength = len(str(tgdata))
+                    if isinstance(tgdata, long):
+                        tglength = len(str(tgdata))
+                          
+                        if tglength != 13 and  tglength != 15 :
+                            tglength = -1 
 
-                if tglength != 13 and  tglength != 15 :
-                    tglength = -1 
+                        output_str = str(tglength)+ "," + unicode(inputfile, 'cp932') + "\n"
 
-                output_str = str(tglength)+ "," + unicode(inputfile, 'cp932') + "\n"
+                        if outputfile is not None:
+                            with open(unicode(outputfile, 'cp932'), "a") as of:
+                                of.write(output_str)
+                        else:
+                            print(output_str)
 
-                if outputfile is not None:
-                    with open(unicode(outputfile, 'cp932'), "a") as of:
-                        of.write(output_str)
-                else:
-                    print(output_str)
+                        result_str =  str(tglength)+ "," + unicode(inputfile, 'cp932') +  "," + keyname + ","+ str(tgdata) + "\n"
 
-                result_str =  str(tglength)+ "," + unicode(inputfile, 'cp932') +  "," + keyname + ","+ str(tgdata) + "\n"
+                        if resultfile is not None:
+                            with open(unicode(resultfile, 'cp932'), "a") as rf:
+                                rf.write(result_str )
+                        else:
+                            print(result_str)
+            
+                        break
+                    elif isinstance(tgdata, str):
+                        tglength = len(tgdata)
 
-                if resultfile is not None:
-                    with open(unicode(resultfile, 'cp932'), "a") as rf:
-                        rf.write(result_str )
-                else:
-                    print(result_str)
-                
+                        if tglength != 13 and  tglength != 15 :
+                            tglength = -1 
 
+                        output_str = str(tglength)+ "," + unicode(inputfile, 'cp932') + "\n"
 
-                break
+                        if outputfile is not None:
+                            with open(unicode(outputfile, 'cp932'), "a") as of:
+                                of.write(output_str)
+                        else:
+                            print(output_str)
+
+                        result_str =  str(tglength)+ "," + unicode(inputfile, 'cp932') +  "," + keyname + ","+ str(tgdata) + ",string \n"
+
+                        if resultfile is not None:
+                            with open(unicode(resultfile, 'cp932'), "a") as rf:
+                                rf.write(result_str )
+                        else:
+                            print(result_str)
+
+                        break
+                    else:
+                        tglength  = -1
+                        output_str = str(tglength)+ "," + unicode(inputfile, 'cp932') + "\n"
+
+                        if outputfile is not None:
+                            with open(unicode(outputfile, 'cp932'), "a") as of:
+                                of.write(output_str)
+                        else:
+                            print(output_str)
+
+                        result_str =  str(tglength)+ "," + unicode(inputfile, 'cp932') +  "," + keyname + ","+ str(tgdata) + ",type unknown \n"
+
+                        if resultfile is not None:
+                            with open(unicode(resultfile, 'cp932'), "a") as rf:
+                                rf.write(result_str )
+                        else:
+                            print(result_str)
+
+                        break
+        else:
+            tglength  = -1
+            output_str = str(tglength)+ "," + unicode(inputfile, 'cp932') + "\n"
+
+            if outputfile is not None:
+                with open(unicode(outputfile, 'cp932'), "a") as of:
+                     of.write(output_str)
+            else:
+                print(output_str)
+
+            result_str =  str(tglength)+ "," + unicode(inputfile, 'cp932') +  "," + keyname + ","+ str(tgdata) + ",no field \n"
+
+            if resultfile is not None:
+                with open(unicode(resultfile, 'cp932'), "a") as rf:
+                    rf.write(result_str )
+            else:
+                print(result_str)
+
        
 
 
