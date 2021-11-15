@@ -19,7 +19,7 @@ def   checkShapeFile( inputfile  ):
 
 # Check to see if shapefile is found.
     if dataSource is None:
-        print 'Could not open %s' % (daShapefile)
+        print( 'Could not open' + inputfile  )
     else:
         print 'Opened %s' % (daShapefile)
         layer = dataSource.GetLayer()
