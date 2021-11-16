@@ -5,58 +5,90 @@
 #
 
 import os
+import sys
 from osgeo import ogr
 
 
-def   checkShapeFile( inputfile  ):
+def toUnicode(encodedStr):
+    '''
+    :return: an unicode-str.
+    '''
+    if isinstance(encodedStr, str):
+        return encodedStr
 
-    #daShapefile = r"G:\work\NHK_kumamoto\210909HDD\kumamoto\430005kumamotoken\その1\1 筑後川\L1\MAXALL.SHP"
-    #daShapefile = r"C:\Temp\Voting_Centers_and_Ballot_Sites.shp"
-    daShapefile = unicode(inputfile, 'cp932') 
+    for charset in [u'cp932', u'utf-8', u'euc-jp', u'shift-jis', u'iso2022-jp']:
+        try:
+            return encodedStr.decode(charset)
+        except:
+            pass
+
+def    dump_id( inputfile, output_file,  field_name ):
+    
+    daShapefile = toUnicode(inputfile) 
     driver = ogr.GetDriverByName('ESRI Shapefile')
 
     dataSource = driver.Open(daShapefile, 0) # 0 means read-only. 1 means writeable.
 
+    ofile = sys.stdout
+   
+
+    if output_file is not None:
+        ofile = open( output_file, mode="w")
+
+
+
+
 # Check to see if shapefile is found.
     if dataSource is None:
-        print 'Could not open %s' % (daShapefile)
+        print( 'Could not open ' + inputfile)
     else:
-        print 'Opened %s' % (daShapefile)
+        #print ('Opened %s' % (daShapefile))
         layer = dataSource.GetLayer()
         featureCount = layer.GetFeatureCount()
-        print "Number of features in %s: %d" % (os.path.basename(daShapefile),featureCount)
+        #print "Number of features in %s: %d" % (os.path.basename(daShapefile),featureCount)
 
         layer_defn = layer.GetLayerDefn()
 
-        keyname = layer_defn.GetFieldDefn(0).GetName()
-        print(keyname )
-        layer.ResetReading()
+        fcount = layer_defn.GetFieldCount()
+        #  field 数取得
 
-        for feature in layer:
-            tgdata = feature. GetField(keyname)
+        if fcount > 0:
+        #if 
+               keyname =  field_name
+
+               if keyname is None:
+              
+                    keyname = layer_defn.GetFieldDefn(0).GetName()
+        #print(keyname )
+               layer.ResetReading()
+
+               for feature in layer:
+                    tgdata = feature. GetField(keyname)
             #print( feature. GetField(keyname))
+                    print( tgdata , file=ofile)
 
-            if isinstance(tgdata, long):
-                print(len(str(tgdata)))
-            #print( type(tgdata) )
-            #print('Feature ID:', feature.GetFID())
-        # get a metadata field with GetField('fieldname'/fieldindex)
-            #print('Feature Metadata Keys:', feature.keys())
-            #print('Feature Metadata Dict:', feature.items())
-            #print('Feature Geometry:', feature.geometry())
+                    #if isinstance(tgdata, int):
+                    #    tglength = len(str(tgdata))
+
+
+
+
 
 
 
 
 
 if __name__ == "__main__":
-    import argschemes
+    import idlistargschemes
 
-    print("initializing...")
+    #print("initializing...")
 
-    args = argschemes.ARGSCHEME.parse_args()
+    args = idlistargschemes.ARGSCHEME.parse_args()
 
     input_file = args.inputfile
+    output_file  = args.output_file
+    #result_file  = args.result
+    field_name   = args.field_name
 
-    checkShapeFile( input_file )
+    dump_id( input_file, output_file , field_name )
 
