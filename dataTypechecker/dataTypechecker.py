@@ -151,11 +151,11 @@ def   checkShapeFile( inputfile  , outputfile, resultfile):
 
 
 if __name__ == "__main__":
-    import argschemes
+    import chkargschemes
 
     #print("initializing...")
 
-    args = argschemes.ARGSCHEME.parse_args()
+    args = chkargschemes.ARGSCHEME.parse_args()
 
     input_file = args.inputfile
     output_file  = args.output_file
