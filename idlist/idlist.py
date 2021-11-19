@@ -24,11 +24,12 @@ def toUnicode(encodedStr):
 
 def    dump_id( inputfile, output_file,  field_name ):
     
-    daShapefile = toUnicode(inputfile) 
-    driver = ogr.GetDriverByName('ESRI Shapefile')
+    #daShapefile = toUnicode(inputfile) 
+    dataFile = toUnicode(inputfile) 
+    #driver = ogr.GetDriverByName('ESRI Shapefile')
 
-    dataSource = driver.Open(daShapefile, 0) # 0 means read-only. 1 means writeable.
-
+    #dataSource = driver.Open(daShapefile, 0) # 0 means read-only. 1 means writeable.
+    dataSource = ogr.Open(dataFile ,0)
     ofile = sys.stdout
    
 
@@ -43,7 +44,7 @@ def    dump_id( inputfile, output_file,  field_name ):
         print( 'Could not open ' + inputfile)
     else:
         #print ('Opened %s' % (daShapefile))
-        layer = dataSource.GetLayer()
+        layer = dataSource.GetLayer(0)
         featureCount = layer.GetFeatureCount()
         #print "Number of features in %s: %d" % (os.path.basename(daShapefile),featureCount)
 
