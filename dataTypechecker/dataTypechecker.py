@@ -40,8 +40,10 @@ def   checkShapeFile( inputfile  , outputfile, resultfile):
 # Check to see if shapefile is found.
     if dataSource is None:
         print( 'Could not open ' + inputfile)
+        print ('could not open  %s' % (daShapefile), file=sys.stderr)
     else:
         print ('Opened %s' % (daShapefile))
+        print ('Opened %s' % (daShapefile), file=sys.stderr)
         layer = dataSource.GetLayer()
         featureCount = layer.GetFeatureCount()
         #print "Number of features in %s: %d" % (os.path.basename(daShapefile),featureCount)
@@ -60,6 +62,32 @@ def   checkShapeFile( inputfile  , outputfile, resultfile):
                for feature in layer:
                     tgdata = feature. GetField(keyname)
             #print( feature. GetField(keyname))
+                    tgeometry = feature.GetGeometryRef()
+
+                    geomname =  tgeometry.GetGeometryName()
+            
+                    if geomname != "POLYGON" and geomname != "MULTIPOLYGON" :
+
+                        output_str = "-2," + toUnicode(inputfile) + "," + geomname + "\n"
+
+                        if outputfile is not None:
+                            with open(toUnicode(outputfile), "a") as of:
+                                of.write(output_str)
+                        else:
+                            print(output_str)
+
+
+
+                        result_str =  "-2 ," + toUnicode(inputfile) +  "," + " " + "," + geomname + " \n"
+
+                        if resultfile is not None:
+                            with open(toUnicode(resultfile), "a") as rf:
+                                rf.write(result_str )
+                        else:
+                            print(result_str)
+            
+                        break
+
 
                     if isinstance(tgdata, int):
                         tglength = len(str(tgdata))
@@ -75,7 +103,7 @@ def   checkShapeFile( inputfile  , outputfile, resultfile):
                         else:
                             print(output_str)
 
-                        result_str =  str(tglength)+ "," + toUnicode(inputfile) +  "," + keyname + ","+ str(tgdata) + "\n"
+                        result_str =  str(tglength)+ "," + toUnicode(inputfile) +  "," + " " + ","+ str(tgdata) + "\n"
 
                         if resultfile is not None:
                             with open(toUnicode(resultfile), "a") as rf:
@@ -98,7 +126,7 @@ def   checkShapeFile( inputfile  , outputfile, resultfile):
                         else:
                             print(output_str)
 
-                        result_str =  str(tglength)+ "," + toUnicode(inputfile) +  "," + keyname + ","+ str(tgdata) + ",string \n"
+                        result_str =  str(tglength)+ "," + toUnicode(inputfile) +  "," + " " + ","+ str(tgdata) + ",string \n"
 
                         if resultfile is not None:
                             with open(toUnicode(resultfile), "a") as rf:
@@ -107,6 +135,31 @@ def   checkShapeFile( inputfile  , outputfile, resultfile):
                             print(result_str)
 
                         break
+                    elif isinstance(tgdata, float):
+                        tglength  = -1
+                        output_str = str(tglength)+ "," + toUnicode(inputfile) + "\n"
+
+                        if outputfile is not None:
+                            with open(toUnicode(outputfile), "a") as of:
+                                of.write(output_str)
+                        else:
+                            print(output_str)
+
+                        #result_str =  str(tglength)+ "," + toUnicode(inputfile) +  "," +toUnicode( keyname ) + ",,type float \n"
+
+
+                        result_str =  str(tglength)+ "," + toUnicode(inputfile) +  "," +"   " + ",,type float \n"
+
+                        if resultfile is not None:
+                            with open(resultfile, "a") as rf:
+                                #print(result_str)
+                                rf.write(result_str )
+                        else:
+                            print(result_str)
+
+                        break
+
+
                     else:
                         tglength  = -1
                         output_str = str(tglength)+ "," + toUnicode(inputfile) + "\n"
@@ -117,7 +170,7 @@ def   checkShapeFile( inputfile  , outputfile, resultfile):
                         else:
                             print(output_str)
 
-                        result_str =  str(tglength)+ "," + toUnicode(inputfile) +  "," + keyname + ","+ str(tgdata) + ",type unknown \n"
+                        result_str =  str(tglength)+ "," + toUnicode(inputfile) +  "," + " "+ ","+ str(tgdata) + ",type unknown \n"
 
                         if resultfile is not None:
                             with open(toUnicode(resultfile), "a") as rf:
@@ -136,7 +189,7 @@ def   checkShapeFile( inputfile  , outputfile, resultfile):
             else:
                 print(output_str)
 
-            result_str =  str(tglength)+ "," +toUnicode(inputfile) +  "," + keyname + ","+ str(tgdata) + ",no field \n"
+            result_str =  str(tglength)+ "," +toUnicode(inputfile) +  "," + "  " + ","+ str(tgdata) + ",no field \n"
 
             if resultfile is not None:
                 with open(toUnicode(resultfile), "a") as rf:
