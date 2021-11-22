@@ -189,7 +189,7 @@ def   checkShapeFile( inputfile  , outputfile, resultfile):
             else:
                 print(output_str)
 
-            result_str =  str(tglength)+ "," +toUnicode(inputfile) +  "," + "  " + ","+ str(tgdata) + ",no field \n"
+            result_str =  str(tglength)+ "," +toUnicode(inputfile) +  "," + "  " + ",,no field \n"
 
             if resultfile is not None:
                 with open(toUnicode(resultfile), "a") as rf:
