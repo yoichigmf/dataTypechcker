@@ -78,7 +78,7 @@ def   checkShapeFile( inputfile  , outputfile, resultfile):
 
 
 
-                        result_str =  "-2 ," + toUnicode(inputfile) +  "," + " " + "," + geomname + " \n"
+                        result_str =  "-2," + toUnicode(inputfile) +  "," + " " + "," + geomname + " \n"
 
                         if resultfile is not None:
                             with open(toUnicode(resultfile), "a") as rf:

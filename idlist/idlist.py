@@ -34,14 +34,14 @@ def    dump_id( inputfile, output_file,  field_name ):
    
 
     if output_file is not None:
-        ofile = open( output_file, mode="w")
+        ofile = open( output_file, mode="a")
 
 
 
 
 # Check to see if shapefile is found.
     if dataSource is None:
-        print( 'Could not open ' + inputfile)
+        print( 'Could not open ' + inputfile, file=sys.stderr)
     else:
         #print ('Opened %s' % (daShapefile))
         layer = dataSource.GetLayer(0)
@@ -87,9 +87,9 @@ if __name__ == "__main__":
     args = idlistargschemes.ARGSCHEME.parse_args()
 
     input_file = args.inputfile
-    output_file  = args.output_file
+    output_file  = args.outputfile
     #result_file  = args.result
-    field_name   = args.field_name
+    field_name   = args.fieldname
 
     dump_id( input_file, output_file , field_name )
 

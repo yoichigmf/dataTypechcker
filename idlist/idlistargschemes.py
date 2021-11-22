@@ -5,5 +5,5 @@ ARGSCHEME = argparse.ArgumentParser( description='dump specified field value fro
 ARGSCHEME.add_argument('inputfile', help='input file name')
 
 
-ARGSCHEME.add_argument('-o', '--output_file', help='output log file name (option)')
-ARGSCHEME.add_argument('-f', '--field_name', help='dump field name (option)')
+ARGSCHEME.add_argument('-o', '--outputfile', help='output log file name (option)')
+ARGSCHEME.add_argument('-f', '--fieldname', help='dump field name (option)')
