@@ -20,11 +20,8 @@ for row in cin:
     #table = mid
 
     #if ln > 0 :
-    #print( "type  15list.txt | python filt2ndmesh\\filter2m.py     -o  result\\" + fname + ".txt " + fname )
+    print( "type  13to15list.txt | python filt2ndmesh\\filter2m.py     -o  result13\\" + fname + ".txt " + fname )
 
-    print("copy \"5mmesh\".\"" + fname + "\" (mid) FROM \'g:/work/NHK_kumamoto/dataTypechecker/result13/" + fname + ".txt\' CSV  ;")
-  
-    
          
     ln = ln + 1
     

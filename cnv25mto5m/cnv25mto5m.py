@@ -24,7 +24,7 @@ def toUnicode(encodedStr):
         except:
             pass
 
-
+#     単一コードの変換
 def   changecode( inputcode  ):
 
 
@@ -76,25 +76,49 @@ def   changecode( inputcode  ):
 
 
        
+def   CnvCode( inputfile, outputfile  ):
 
+    ofile = sys.stdout
+    ifile = sys.stdin
+
+    if outputfile  is not None:
+        ofile = open( outputfile, mode="w")
+
+    if inputfile is not None:
+        ifile = open( inputfile, mode="r")
+
+
+    for s_line in ifile:
+
+        concode =  changecode(  s_line  )
+
+        for nid in concode:
+            print( nid, file=ofile)
+    
+    if outputfile  is not None:
+        ofile.close()
+
+    if inputfile is not None:
+        ifile.close()
 
 
 
 
 if __name__ == "__main__":
-    #import argschemes
+    import cnv25argschemes
 
     #print("initializing...")
 
-    #args = argschemes.ARGSCHEME.parse_args()
+    args = cnv25argschemes.ARGSCHEME.parse_args()
 
-    #input_file = args.inputfile
-    #output_file  = args.output_file
+    input_file = args.inputfile
+    output_file  = args.outputfile
     #result_file  = args.result
+    CnvCode( input_file, output_file  )
 
-    inputcode = "4931506430123"
+    #inputcode = "4931506430123"
 
-    ret_list = changecode( inputcode )
+    #＃ret_list = changecode( inputcode )
 
-    print(ret_list)
+    #print(ret_list)
 
