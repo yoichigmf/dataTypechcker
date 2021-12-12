@@ -236,6 +236,10 @@ def  Create5mand2ndMesh( param, output_file  ):
      prefname = param["PREFNAME"]
      prefname_j = param["PREFNAME_J"]
 
+     dbname = param["DBNAME"]
+     dbuser = param["DBUSER"]
+     dbpassword = param["DBPASSWD"]
+
      root = basedir + "/" + prefname
      Adm = root + "/" +"Adm"
 
@@ -274,8 +278,13 @@ def  Create5mand2ndMesh( param, output_file  ):
         #print( str(feature.GetField("code")) + "," + str(extent[0]) + "," + str(extent[2]) + " " + str(extent[1]) + "," + str(extent[3]))
         print( cmdstr , file=outf)
 
-     #featureCount = lyr.GetFeatureCount()
+        ogrstr = "ogr2ogr -f \"GPKG\" -nln " + str(code) + " " + secondMesh + "/"  + str(code) + ".gpkg " + outputstr 
+        print( ogrstr , file=outf)
 
+
+        ogpgstr = "ogr2ogr -f \"PostgreSQL\" PG:\"host=localhost user=" + dbuser + "password=" + dbpassword + "dbname=" + dbname + "\" " + outputstr + " -nln mesh." + str(code) + " -append"
+     #featureCount = lyr.GetFeatureCount()
+        print( ogpgstr , file=outf)
      #print("feature count " + str(featureCount))
 
      print (basedir )
