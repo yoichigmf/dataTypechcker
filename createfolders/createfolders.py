@@ -57,6 +57,11 @@ def   MakeFolders(  prefname, basedir, pref_code, prefname_j, test_mode , dbhost
     secondMesh = root + "/" + "2ndmesh"
     
     my_makedirs( secondMesh )    
+
+    #  3rd mesh geopackage and geojson
+    thirdMesh = root + "/" + "3rdmesh"
+    
+    my_makedirs( thirdMesh )    
     
     #   geojson  work files
     workfiles = root + "/" + "workfiles"   
@@ -124,12 +129,14 @@ def   MakeFolders(  prefname, basedir, pref_code, prefname_j, test_mode , dbhost
     
     create_dbcreatesql( scripts, db_name )
     
-    create2ndMeshall(  root , basedir, secondMesh, workfiles,  ext, scripts, prefname_j )
+    #create2ndMeshall(  root , basedir, secondMesh, workfiles,  ext, scripts, prefname_j )
+
+    createMeshall( root, basedir, thirdMesh , workfiles, ext, scripts, prefname_j , 3)
 
 
 
 #   メッシュ作成スクリプト
-def   createMeshall( root, basedir, secondMesh, workfiles, extent, scripts, prefname_j , meshlevel):
+def   createMeshall( root, basedir, Meshdir, workfiles, extent, scripts, prefname_j , meshlevel):
 
     mesh_script = scripts + "/create" + str(meshlevel ) + "meshall.bat"
     
@@ -145,7 +152,7 @@ def   createMeshall( root, basedir, secondMesh, workfiles, extent, scripts, pref
     
     rootdirname = getabsolutepath( root )
               
-    secondmesh_path = getabsolutepath( secondMesh )
+    mesh_path = getabsolutepath( Meshdir )
 
 
     work_path = getabsolutepath( workfiles )
@@ -153,19 +160,19 @@ def   createMeshall( root, basedir, secondMesh, workfiles, extent, scripts, pref
     admfilename = rootdirname + "/Adm/N03_001_" + prefname_j + ".gpkg|layername=N03_001_" + prefname_j
     #G:/work/NHK_hazard/fukuiken/Adm/N03_001_福井県.gpkg|layername=N03_001_福井県
 
-    outputfname = secondmesh_path + "/mesh" + str( meshlevel) + ".gpkg"
+    outputfname = mesh_path + "/mesh" + str( meshlevel) + ".gpkg"
     
     with open( mesh_script, 'w', encoding="sjis") as f: 
     
          meshstr = "python "+ basedirname + "/hazard_tools/japan-mesh-tool/python/japanmesh/main.py  " + str(meshlevel ) + " -e " + str(extent[0]) +","+ str(extent[2]) + " " + str(extent[1]) + "," + str(extent[3]) + "  -d "+ work_path + "\n"
          f.write( meshstr )
 
-         ogrstr = "ogr2ogr  -overwrite   -f GPKG -nln  mesh2nd     " +  work_path + "/mesh" + str(meshlevel) + ".gpkg  " + work_path + "/mesh_" + str(meshlevel ) + ".geojsonl\n"
+         ogrstr = "ogr2ogr  -overwrite   -f GPKG -nln  mesh" +   str(meshlevel) +   " " +  work_path + "/mesh" + str(meshlevel) + ".gpkg  " + work_path + "/mesh_" + str(meshlevel ) + ".geojsonl\n"
 
          f.write( ogrstr )
 
          
-         meshstr2 = "qgis_process-qgis-ltr run qgis:extractbylocation -- INPUT=\"" + work_path + "/mesh2nd.gpkg|layername=mesh2nd\" PREDICATE=0,1,4,5 INTERSECT=\"" + admfilename + "\" OUTPUT=\"" + outputfname + "\""
+         meshstr2 = "qgis_process-qgis-ltr run qgis:extractbylocation -- INPUT=\"" + work_path + "/mesh" + str(meshlevel) + ".gpkg|layername=mesh" + str(meshlevel) + "\" PREDICATE=0,1,4,5 INTERSECT=\"" + admfilename + "\" OUTPUT=\"" + outputfname + "\""
          #G:\\work\\NHK_hazard\\fukuiken\\workfiles\\mesh2ndselected.shp"
 
          f.write( meshstr2 )
