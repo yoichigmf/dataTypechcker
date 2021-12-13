@@ -163,7 +163,7 @@ def   create2ndMeshall( root, basedir, secondMesh, workfiles, extent, scripts, p
          f.write( ogrstr )
 
          
-         meshstr2 = "qgis_process-qgis run qgis:extractbylocation -- INPUT=\"" + work_path + "/mesh2nd.gpkg|layername=mesh2nd\" PREDICATE=0,1,4,5 INTERSECT=\"" + admfilename + "\" OUTPUT=\"" + outputfname + "\""
+         meshstr2 = "qgis_process-qgis-ltr run qgis:extractbylocation -- INPUT=\"" + work_path + "/mesh2nd.gpkg|layername=mesh2nd\" PREDICATE=0,1,4,5 INTERSECT=\"" + admfilename + "\" OUTPUT=\"" + outputfname + "\""
          #G:\\work\\NHK_hazard\\fukuiken\\workfiles\\mesh2ndselected.shp"
 
          f.write( meshstr2 )
@@ -267,11 +267,17 @@ def  Create5mand2ndMesh( param, output_file  ):
         outf = open(output_file , mode='w',  encoding='sjis' )
 
 
+     geomtype = lyr.GetGeomType()
+
+     print( "geometry type " + str(geomtype ))
+
      for feature in lyr:
         geom = feature.GetGeometryRef()
         extent = geom.GetEnvelope()
 
         code = feature["code"]
+
+        print( extent )
 
         outputstr = outputdir + str(code) + ".gojsonl"
         cmdstr = "python " + toolstr + "main.py 10  -e " + str(extent[0]) + "," + str(extent[2]) + " " + str(extent[1]) + "," + str(extent[3]) + " -o " + outputstr 

@@ -9,19 +9,17 @@ import sys
 import csv
 import pathlib
 import shutil
+import json
 
 from osgeo import ogr
 
 
-def   MakeFolders(  prefname, basedir, pref_code, prefname_j, test_mode , dbhost ):
+def   MakeFolders(  prefname, basedir, pref_code, prefname_j, test_mode  ):
 
 
     
     if basedir  is  None:
         basedir ="."
-
-    if dbhost is None:
-        dbhost = "localhost"
         
     print( prefname )
     
@@ -108,7 +106,6 @@ def   MakeFolders(  prefname, basedir, pref_code, prefname_j, test_mode , dbhost
 
          #print( "db=" + db_name )
          f.write("{\n" )
-         f.write("\"DBHOST\":\"" + dbhost + "\"\n")
          f.write("\"DBNAME\":\"" + db_name + "\"\n")
          f.write(",\"BASEDIR\":\"" + basedirname + "\"\n" )
          f.write(",\"PREFNAME\":\"" +  prefname + "\"\n" )
@@ -126,49 +123,6 @@ def   MakeFolders(  prefname, basedir, pref_code, prefname_j, test_mode , dbhost
     
     create2ndMeshall(  root , basedir, secondMesh, workfiles,  ext, scripts, prefname_j )
 
-
-
-#   メッシュ作成スクリプト
-def   createMeshall( root, basedir, secondMesh, workfiles, extent, scripts, prefname_j , meshlevel):
-
-    mesh_script = scripts + "/create" + str(meshlevel ) + "meshall.bat"
-    
-    basedirname = getabsolutepath( basedir )
-    #p = pathlib.Path( basedir )
-    
-    #if p.is_absolute():
-    #    basedirname = basedir
-    #else:
-    #    prel = p.resolve()
-     #   basedirname = prel.as_posix()
-
-    
-    rootdirname = getabsolutepath( root )
-              
-    secondmesh_path = getabsolutepath( secondMesh )
-
-
-    work_path = getabsolutepath( workfiles )
-
-    admfilename = rootdirname + "/Adm/N03_001_" + prefname_j + ".gpkg|layername=N03_001_" + prefname_j
-    #G:/work/NHK_hazard/fukuiken/Adm/N03_001_福井県.gpkg|layername=N03_001_福井県
-
-    outputfname = secondmesh_path + "/mesh" + str( meshlevel) + ".gpkg"
-    
-    with open( mesh_script, 'w', encoding="sjis") as f: 
-    
-         meshstr = "python "+ basedirname + "/hazard_tools/japan-mesh-tool/python/japanmesh/main.py  " + str(meshlevel ) + " -e " + str(extent[0]) +","+ str(extent[2]) + " " + str(extent[1]) + "," + str(extent[3]) + "  -d "+ work_path + "\n"
-         f.write( meshstr )
-
-         ogrstr = "ogr2ogr  -overwrite   -f GPKG -nln  mesh2nd     " +  work_path + "/mesh" + str(meshlevel) + ".gpkg  " + work_path + "/mesh_" + str(meshlevel ) + ".geojsonl\n"
-
-         f.write( ogrstr )
-
-         
-         meshstr2 = "qgis_process-qgis-ltr run qgis:extractbylocation -- INPUT=\"" + work_path + "/mesh2nd.gpkg|layername=mesh2nd\" PREDICATE=0,1,4,5 INTERSECT=\"" + admfilename + "\" OUTPUT=\"" + outputfname + "\""
-         #G:\\work\\NHK_hazard\\fukuiken\\workfiles\\mesh2ndselected.shp"
-
-         f.write( meshstr2 )
 
 
 
@@ -248,85 +202,6 @@ def  getExtent( dbfile, layername ):
     
 # 領域ファイルコピー
 
-def  copy_admfile( Adm, prefname_j ):
-     adm_filename = "N03_001_" + prefname_j + ".gpkg"
-     pbase = __file__
-     dirname = os.path.dirname(pbase)
-     
-     srcname = dirname + "/prefareas/" + adm_filename
-     distname = Adm + "/" + adm_filename
-     shutil.copy( srcname ,distname)
-     
-     dtable = "N03_001_" + prefname_j 
-     return distname, dtable
-
-    
-#   データベース作成SQL
-def  create_dbcreatesql( scripts_path, dbname ):
-
-
-     sql_filename = scripts_path + "/createdb.sql"
-     
-     print( sql_filename )
-     
-     with open( sql_filename, 'w' ) as sfile:
-     
-          sfile.write( "CREATE DATABASE \"" + dbname + "\"" )
-          sqls2 = ''' 
-    WITH 
-    OWNER = postgres
-    ENCODING = 'UTF8'
-    LC_COLLATE = 'Japanese_Japan.932'
-    LC_CTYPE = 'Japanese_Japan.932'
-    TABLESPACE = pg_default
-    CONNECTION LIMIT = -1;
-    
-    '''
-    
-     
-          sfile.write( sqls2 )
-          sfile.write( "\\c " + dbname + "\;\n" )
-     
-          sql = '''
-          
-
-CREATE EXTENSION postgis
-    SCHEMA public
-    ;
-    
-  ;
-
-CREATE EXTENSION ogr_fdw
-    SCHEMA public
-   ;
-
-    
-CREATE SCHEMA "census2015"
-    AUTHORIZATION postgres;
-    
-    
-CREATE SCHEMA "L2mesh"
-    AUTHORIZATION postgres;   
-    
-CREATE SCHEMA "joins"
-    AUTHORIZATION postgres;
-    
-    
-CREATE SCHEMA  "groupstats"
-    AUTHORIZATION postgres;
-    
-CREATE SCHEMA  "mesh"
-    AUTHORIZATION postgres;
-    
-CREATE SCHEMA  "5mmesh"
-    AUTHORIZATION postgres;
-    
-CREATE SCHEMA  "5mmeshin4th"
-    AUTHORIZATION postgres;
-  
-          ''';
-          sfile.write( sql )
-          
 
 
 def my_makedirs(path):
@@ -353,34 +228,182 @@ def check_prefname( prefname ):
     return  "0", "undefined"
 
 
+def  Create5mand2ndMesh( param, output_file  ):
+
+     basedir = param["BASEDIR"]
+     dbname = param["DBNAME"]
+
+     prefname = param["PREFNAME"]
+     prefname_j = param["PREFNAME_J"]
+
+     dbname = param["DBNAME"]
+     dbuser = param["DBUSER"]
+     dbpassword = param["DBPASSWD"]
+
+     root = basedir + "/" + prefname
+     Adm = root + "/" +"Adm"
+
+         #  2nd mesh geopackage and geojson
+     secondMesh = root + "/" + "2ndmesh"
+
+     second_md = secondMesh + "/mesh2nd.gpkg"
+
+     conn = ogr.Open(second_md )
+
+     outputdir = root + "/workfiles/2nd/"
+
+     lyr = conn.GetLayer( "mesh2nd" )
+
+     if lyr is None:
+        print >> sys.stderr, '[ ERROR ]: layer name = "%s" could not be found in database "%s"' % ( "mesh2nd", second_md )
+        sys.exit( 1 )
+
+
+     toolstr =  basedir + "/hazard_tools/japan-mesh-tool/python/japanmesh/"
+  
+     if output_file  is  None:
+        outf = sys.stdout
+     else:
+        outf = open(output_file , mode='w',  encoding='sjis' )
+
+
+     for feature in lyr:
+        geom = feature.GetGeometryRef()
+        extent = geom.GetEnvelope()
+
+        code = feature["code"]
+
+        outputstr = outputdir + str(code) + ".gojsonl"
+        cmdstr = "python " + toolstr + "main.py 10  -e " + str(extent[0]) + "," + str(extent[2]) + " " + str(extent[1]) + "," + str(extent[3]) + " -o " + outputstr 
+        #print( str(feature.GetField("code")) + "," + str(extent[0]) + "," + str(extent[2]) + " " + str(extent[1]) + "," + str(extent[3]))
+        print( cmdstr , file=outf)
+
+        ogrstr = "ogr2ogr -f \"GPKG\" -nln " + str(code) + " " + secondMesh + "/"  + str(code) + ".gpkg " + outputstr 
+        print( ogrstr , file=outf)
+
+
+        ogpgstr = "ogr2ogr -f \"PostgreSQL\" PG:\"host=localhost user=" + dbuser + "password=" + dbpassword + "dbname=" + dbname + "\" " + outputstr + " -nln mesh." + str(code) + " -append"
+     #featureCount = lyr.GetFeatureCount()
+        print( ogpgstr , file=outf)
+     #print("feature count " + str(featureCount))
+
+     print (basedir )
+     print( dbname )
+
+     print( second_md )
+     
+def  getLayers( dbfile ):
+
+
+     conn = ogr.Open( dbfile )
+     
+     layec = conn.GetLayerCount()
+     
+     
+     print( "number of layer " + str(layec ))
+     
+     layer = conn.GetLayerByIndex(0)
+     
+     print( str(layer.GetGeomType()) )
+     
+     geomtype = layer.GetGeomType()
+     
+     
+
+          
+    
+     
+     for feature in layer:
+     
+          geom = feature.GetGeometryRef()
+              # polygon
+          if geomtype == 3:
+          
+              #xmin, ymin, xmax, ymax = getext( geom )
+              #for ring in geom:
+              #    points = ring.GetPointCount()
+                   
+              #     print("points in ring " + str(points ))
+              print( geom.ExportToWkt())
+              geom_poly_envelope = geom.GetEnvelope()
+              print(str( geom_poly_envelope[0] ) + " " + str(geom_poly_envelope[2] ) + " " + str(geom_poly_envelope[1] ) + " " + str(geom_poly_envelope[3] ))
+          else:    
+              
+
+         
+              print( "pointc " + str(geom.GetPointCount()))
+              for i in range(0, geom.GetPointCount()):
+                   pt = geom.GetPoint(i)
+              
+                   print("point " + str(i ) + " [" + str(pt[0] ) + "," + str(pt[1] ) + "]" )
+              print( geom.ExportToWkt())
+     
+     #inLayer = conn.GetLayer( layername )
+     #extent = inLayer.GetExtent()
+     
+     #print( extent )
+     
+     #return extent
+     
+def getext( geom ):
+
+     valueset = False
+     
+     xmin = 0.0
+     ymin = 0.0
+     xmax = 0.0
+     ymax = 0.0
+     
+     
+     for ring in geom:
+          points = ring.GetPointCount()
+          
+          for p in xrange(points):
+          #pcnt+=1
+               lon,lat, z = ring.GetPoint(p)
+          #zval = get_zval(feat,zfield)
+          
+               if not valueset:
+                    xmin = lon
+                    xmax = lon
+                    ymin = lat
+                    ymax = lat
+               
+               if zval != None:
+                    z = zval.strip()
+               outstr = "%s,%s,%s\n" % (lon,lat,z)
+               print(outstr)
+                   
+         # print("points in ring " + str(points ))
+     return xmin, ymin, xmax, ymax
 if __name__ == "__main__":
-    import createfoldersschemes
+    import testgeomschema
 
     #print("initializing...")
 
-    args = createfoldersschemes.ARGSCHEME.parse_args()
-
-    basedir  = args.basedir
+    args = testgeomschema.ARGSCHEME.parse_args()
 
 
-    prefname = args.prefname
-    
-    test_mode = args.testmode
-
-    dbhost  = args.dbhost
+    input_file = args.inputfile
 
     
-    
-    pref_code , pref_name_j =  check_prefname( prefname )
 
+    if input_file  is  None:
+        print( "input file miss" )
+        exit()
+ 
+    print(input_file )
+    
+    getLayers( input_file )
+    
     #param =  args.param
 
     #command_str = args.command
 
     #print( prefname )
     
-    if int(pref_code) > 0 :
-         MakeFolders(  prefname, basedir, pref_code, pref_name_j, test_mode, dbhost  )
-    else:
-         print("prefecture name error  " + prefname )
-         print("you must type prefcture name such as  aichiken   hokkaido ")
+    #if int(pref_code) > 0 :
+    #     MakeFolders(  prefname, basedir, pref_code, pref_name_j, test_mode  )
+    #else:
+    #     print("prefecture name error  " + prefname )
+    #     print("you must type prefcture name such as  aichiken   hokkaido ")
