@@ -298,6 +298,77 @@ def  Create5mand2ndMesh( param, output_file  ):
 
      print( second_md )
 
+
+def  Create5mandMesh( param, output_file , meshlevel ):
+
+     basedir = param["BASEDIR"]
+     dbname = param["DBNAME"]
+
+     prefname = param["PREFNAME"]
+     prefname_j = param["PREFNAME_J"]
+
+     dbname = param["DBNAME"]
+     dbuser = param["DBUSER"]
+     dbpassword = param["DBPASSWD"]
+
+     root = basedir + "/" + prefname
+     Adm = root + "/" +"Adm"
+
+         #  target mesh geopackage and geojson
+     tgMesh = root + "/" + "3rdmesh"
+
+     tg_md = tgMesh + "/mesh" + str(meshlevel) + ".gpkg"
+
+     conn = ogr.Open( tg_md )
+
+     outputdir = root + "/workfiles/3rd/"
+
+     lyr = conn.GetLayer( "mesh" + str(meshlevel) )
+
+     if lyr is None:
+        print >> sys.stderr, '[ ERROR ]: layer name = "%s" could not be found in database "%s"' % ( "mesh2nd", second_md )
+        sys.exit( 1 )
+
+
+     toolstr =  basedir + "/hazard_tools/japan-mesh-tool/python/japanmesh/"
+  
+     if output_file  is  None:
+        outf = sys.stdout
+     else:
+        outf = open(output_file , mode='w',  encoding='sjis' )
+
+
+     geomtype = lyr.GetGeomType()
+
+     print( "geometry type " + str(geomtype ))
+
+     for feature in lyr:
+        geom = feature.GetGeometryRef()
+        extent = geom.GetEnvelope()
+
+        code = feature["code"]
+
+        print( extent )
+
+        outputstr = outputdir + str(code) + ".gojsonl"
+        cmdstr = "python " + toolstr + "main.py 10  -e " + str(extent[0]) + "," + str(extent[2]) + " " + str(extent[1]) + "," + str(extent[3]) + " -o " + outputstr 
+        #print( str(feature.GetField("code")) + "," + str(extent[0]) + "," + str(extent[2]) + " " + str(extent[1]) + "," + str(extent[3]))
+        print( cmdstr , file=outf)
+
+        ogrstr = "ogr2ogr -f \"GPKG\" -nln " + str(code) + " " + tgMesh + "/"  + str(code) + ".gpkg " + outputstr 
+        print( ogrstr , file=outf)
+
+
+        ogpgstr = "ogr2ogr -f \"PostgreSQL\" PG:\"host=localhost user=" + dbuser + " password=" + dbpassword + " dbname=" + dbname + "\" " + outputstr + " -nln mesh." + str(code) + " -append"
+     #featureCount = lyr.GetFeatureCount()
+        print( ogpgstr , file=outf)
+     #print("feature count " + str(featureCount))
+
+     print (basedir )
+     print( dbname )
+
+     print( tg_md )
+
 if __name__ == "__main__":
     import makemeshprmschemes
 
@@ -314,7 +385,7 @@ if __name__ == "__main__":
 
     output_file = args.outputfile
 
-    
+    #print( "yyy")
 
     if basedir  is  None:
         basedir ="."
@@ -332,8 +403,8 @@ if __name__ == "__main__":
 
              print(param)
 
-
-             Create5mand2ndMesh( param, output_file  )
+             Create5mandMesh( param, output_file , 3)
+             #Create5mand2ndMesh( param, output_file  )
     except FileNotFoundError as e: # FileNotFoundErrorは例外クラス名
         print("設定ファイルが見つかりません " + configfile , e)
     except Exception as e: # Exceptionは、それ以外の例外が発生した場合

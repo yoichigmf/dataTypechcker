@@ -114,7 +114,7 @@ def   MakeFolders(  prefname, basedir, pref_code, prefname_j, test_mode , dbhost
          #print( "db=" + db_name )
          f.write("{\n" )
          f.write("\"DBHOST\":\"" + dbhost + "\"\n")
-         f.write("\"DBNAME\":\"" + db_name + "\"\n")
+         f.write(",\"DBNAME\":\"" + db_name + "\"\n")
          f.write(",\"BASEDIR\":\"" + basedirname + "\"\n" )
          f.write(",\"PREFNAME\":\"" +  prefname + "\"\n" )
          f.write(",\"PREFNAME_J\":\"" +  prefname_j + "\"\n" )     
