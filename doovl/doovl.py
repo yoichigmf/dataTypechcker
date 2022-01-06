@@ -13,6 +13,8 @@ import csv
 import glob
 import subprocess
 
+import uuid
+
 import codecs
 from osgeo import ogr
 
@@ -91,10 +93,10 @@ def  make_paramfile( inputfile, paramfile ):
     #ifile = sys.stdin
 
  
-    prmfile = open( paramfile , mode="w", encoding='shift_jis' )
+    prmfile = open( paramfile , mode="w", encoding='shift_jisx0213' )
 
     
-    ifile = open( inputfile, mode="r", encoding='shift_jis' )
+    ifile = open( inputfile, mode="r", encoding='shift_jisx0213' )
 
 
     csvreader = csv.reader( ifile )
@@ -271,7 +273,10 @@ def make_5m( param_file,  ovlresult, ovlsep, thirdpath,  attrflag ):
 
 def   DoOverlay( inputfile, attrflag  ):
 
-    param_file = "scripts/ovlparam.csv"
+    #  パラメータファイル名をユニークファイル名に変更  2022/1/7
+    unique_filename = str(uuid.uuid4())
+
+    param_file = "scripts/" + unique_filename + ".csv"
 
     input_path =  './workfiles/ovlinput/'
 
