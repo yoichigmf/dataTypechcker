@@ -164,9 +164,10 @@ def make_intersect3rd( param_file , input_path, ovl3rdpath, thirdmesh ,attrflag)
             cmd_str = "qgis_process-qgis-ltr run qgis:intersection    -- INPUT=\"" + thirdmesh  + "\" OVERLAY=\"" + input_path + fname + "\" INPUT_FIELDS=code OUTPUT=\""  + ovl3rdpath + fname0 + "\""
 
             if attrflag:
-                cmd_str = cmd_str + " OVERLAY_FIELDS=SSS,SSS_Rank OVERLAY_FIELDS_PREFIX="
+                cmd_str = cmd_str + " OVERLAY_FIELDS=SSS;SSS_Rank OVERLAY_FIELDS_PREFIX="
+                #cmd_str = cmd_str + " OVERLAY_FIELDS= OVERLAY_FIELDS_PREFIX="
             else:
-                cmd_str = cmd_str + " OVERLAY_FIELDS= OVERLAY_FIELDS_PREFIX="
+                cmd_str = cmd_str + " OVERLAY_FIELDS=None OVERLAY_FIELDS_PREFIX="
 
             #print( cmd_str )
             subprocess.run(cmd_str, shell=True)
@@ -252,6 +253,13 @@ def make_5m( param_file,  ovlresult, ovlsep, thirdpath,  attrflag ):
 
                  output_f = ovlresult + fname0 + "_" + thirdmesh + ".csv"
                  cmd_str = "qgis_process-qgis-ltr run qgis:intersection  -- INPUT=\"" +  tmesh    + "\" OVERLAY=\"" + file  + "\" INPUT_FIELDS=code OUTPUT=\""  + output_f + "\""
+                 
+                 if attrflag:
+                      cmd_str = cmd_str + " OVERLAY_FIELDS=SSS;SSS_Rank OVERLAY_FIELDS_PREFIX="
+                      #cmd_str = cmd_str + " OVERLAY_FIELDS= OVERLAY_FIELDS_PREFIX="
+                 else:
+                      cmd_str = cmd_str + " OVERLAY_FIELDS=None OVERLAY_FIELDS_PREFIX="
+
                  print( cmd_str )
 
                  #print(rf[1])
@@ -277,19 +285,19 @@ def   DoOverlay( inputfile, attrflag  ):
 
     ovlresult  = './workfiles/ovlresult/'
     #  パラメータファイルの作成
-    #make_paramfile( inputfile, param_file )
+    make_paramfile( inputfile, param_file )
 
     # ジオメトリ修復
-    #make_fix( param_file, input_path )
+    make_fix( param_file, input_path )
 
      # 3次メッシュとのIntersect
 
-    #make_intersect3rd(  param_file, input_path, ovl3rdpath, thirdmesh, attrflag )
+    make_intersect3rd(  param_file, input_path, ovl3rdpath, thirdmesh, attrflag )
 
 
     #  3次メッシュコード別分割
 
-    #make_split( param_file,  ovl3rdpath, ovlsep, attrflag )
+    make_split( param_file,  ovl3rdpath, ovlsep, attrflag )
 
     # 5m mesh  overlay
 
@@ -306,6 +314,6 @@ if __name__ == "__main__":
 
     input_file = args.inputfile
 
-    attrflag = False
+    attrflag = True
     DoOverlay( input_file , attrflag )
 
