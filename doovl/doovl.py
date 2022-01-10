@@ -93,10 +93,10 @@ def  make_paramfile( inputfile, paramfile ):
     #ifile = sys.stdin
 
  
-    prmfile = open( paramfile , mode="w", encoding='shift_jisx0213' )
+    prmfile = open( paramfile , mode="w", encoding='cp932' )
 
     
-    ifile = open( inputfile, mode="r", encoding='shift_jisx0213' )
+    ifile = open( inputfile, mode="r", encoding='cp932' )
 
 
     csvreader = csv.reader( ifile )
@@ -131,7 +131,7 @@ def make_fix( param_file , input_path):
     if not os.path.exists(input_path ):
         os.mkdir(input_path)
 
-    with open( param_file , mode="r", encoding='shift_jis' ) as prmfile:
+    with open( param_file , mode="r", encoding='cp932' ) as prmfile:
 
         csvreader = csv.reader( prmfile )
 
@@ -154,7 +154,7 @@ def make_intersect3rd( param_file , input_path, ovl3rdpath, thirdmesh ,attrflag)
     if not os.path.exists(ovl3rdpath ):
         os.mkdir(ovl3rdpath)
 
-    with open( param_file , mode="r", encoding='shift_jis' ) as prmfile:
+    with open( param_file , mode="r", encoding='cp932' ) as prmfile:
 
         csvreader = csv.reader( prmfile )
 
@@ -183,7 +183,7 @@ def make_split( param_file,  ovl3rdpath, ovlsep, attrflag ):
     if not os.path.exists(ovlsep ):
         os.mkdir(ovlsep)
 
-    with open( param_file , mode="r", encoding='shift_jis' ) as prmfile:
+    with open( param_file , mode="r", encoding='cp932' ) as prmfile:
 
         csvreader = csv.reader( prmfile )
 
@@ -213,7 +213,7 @@ def make_5m( param_file,  ovlresult, ovlsep, thirdpath,  attrflag ):
     if not os.path.exists(ovlresult):
         os.mkdir(ovlresult)
 
-    with open( param_file , mode="r", encoding='shift_jis' ) as prmfile:
+    with open( param_file , mode="r", encoding='cp932' ) as prmfile:
 
         csvreader = csv.reader( prmfile )
 
@@ -269,6 +269,26 @@ def make_5m( param_file,  ovlresult, ovlsep, thirdpath,  attrflag ):
             #print( cmd_str )
                  subprocess.run(cmd_str, shell=True)
 
+def dummy( param_file , input_path):
+    print( param_file )
+       #  フォルダが無ければ作る
+
+    #if not os.path.exists(input_path ):
+    #    os.mkdir(input_path)
+
+    with open( param_file , mode="r", encoding='cp932' ) as prmfile:
+
+        csvreader = csv.reader( prmfile )
+
+        for  s_line in csvreader:
+
+            fname = s_line[0]
+            tgfname = s_line[1]
+
+            cmd_str = "qgis_process-qgis-ltr run native:fixgeometries  -- INPUT=\"" + tgfname + "\" OUTPUT=\"" + input_path + fname + "\"" 
+
+            print( cmd_str )
+            #subprocess.run(cmd_str, shell=True)
 
 
 def   DoOverlay( inputfile, attrflag  ):
