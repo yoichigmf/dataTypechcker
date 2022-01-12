@@ -13,6 +13,7 @@
 * OGeo4W shell
 * Python 3.9.5
 * PostgreSQL 13
+* PostGIS 3.1.4
 
 
 # modules
@@ -24,9 +25,27 @@
 * createfolders
 
 作業用フォルダの作成
-```DOs
+```DOS
 python createfolders.py  miyazakiken
 ```
+
+* dataTypechecker
+
+shapeファイルのデータチェック
+```DOS
+python dataTypechecker.py   -r <result file name> -o <output file name>    <input file name>
+```
+
+* doovl
+
+5mメッシュの集計
+
+```DOS
+python doovl.py  -P <True or False>  <input file>
+```
+
+ **input file**            
+shape file のフルパス名リストが格納されたテキストファイルの名前 
 
 
 # Author

@@ -84,103 +84,7 @@ def   changecode( inputcode  ):
 
        
 
-#  指定オーバーレイ結果ファイルのレコード数チェック
-#     レコード数 0 の場合指定領域外
-#     　　パラメータファイルノ書き直し   範囲外データを除去する
-#
-
      
-def chk_area( param_file,  ovl3rdpath,  newparam,   attrflag ):
-
-    with open( param_file , mode="r", encoding='cp932' ) as prmf:
-
-
-         count = 0
-    
-         with open( newparam, mode="w", encoding='cp932' ) as newp:
-
-                 csvreader = csv.reader( prmf )
-
-                 driver = ogr.GetDriverByName('GPKG')
-                 for  s_line in csvreader:
-
-                     fname = s_line[0]
-                     ifname = ovl3rdpath + "/" + fname + ".gpkg"
-
-                     dataSource = driver.Open(ifname, 0)
-
-                     if dataSource is None:
-                          print ('Could not open %s' % (ifname))
-                     else:
-                          #print( 'Opened %s' % (ifname))
-                          layer = dataSource.GetLayer()
-                          featureCount = layer.GetFeatureCount()
-                          print ("Number of features in %s: %d" % (ifname,featureCount))
-
-                          if featureCount > 0:
-                               count = count + 1
-
-                    # layer = dataSource.GetLayer()
-                    # print( ifname )
-
-         print( "Number of data contain  %d" % (count))
-           # cmd_str = "qgis_process-qgis-ltr run native:fixgeometries  -- INPUT=\"" + tgfname + "\" OUTPUT=\"" + input_path + fname + "\"" 
-
-
-#  指定オーバーレイ結果ファイルのレコード数チェック
-#     レコード数 0 の場合指定領域外
-#     　　パラメータファイルノ書き直し   範囲外データを除去する
-#
-
-     
-def chk_extent( param_file,  input_path,  newparam,   attrflag ):
-
-    with open( param_file , mode="r", encoding='cp932' ) as prmf:
-
-
-         count = 0
-    
-         with open( newparam, mode="w", encoding='cp932' ) as newp:
-
-                 csvreader = csv.reader( prmf )
-
-                 driver = ogr.GetDriverByName('GPKG')
-                 for  s_line in csvreader:
-
-                     fname = s_line[0]
-                     ifname = input_path + "/" + fname + ".gpkg"
-
-                     dataSource = driver.Open(ifname, 0)
-
-                     if dataSource is None:
-                          print ('Could not open %s' % (ifname))
-                     else:
-                          #print( 'Opened %s' % (ifname))
-                          layer = dataSource.GetLayer()
-                          featureCount = layer.GetFeatureCount()
-                          extent = layer.GetExtent()
-                          spatialRef = layer.GetSpatialRef()
-                          spatialRef.AutoIdentifyEPSG()
-
-                          feature = layer.GetNextFeature()
-                          geometry = feature.GetGeometryRef()
-
-
-
-
-
-                          print ("Number of features in %s: %d  %f %f %f %f %s %s" % (ifname,featureCount,extent[0],extent[1],extent[2],extent[3], spatialRef.GetName(),geometry.GetGeometryName()))
-
-                          if featureCount > 0:
-                               count = count + 1
-
-                    # layer = dataSource.GetLayer()
-                    # print( ifname )
-
-         print( "Number of data contain  %d" % (count))
-           # cmd_str = "qgis_process-qgis-ltr run native:fixgeometries  -- INPUT=\"" + tgfname + "\" OUTPUT=\"" + input_path + fname + "\"" 
-
-
 
 def  make_paramfile( inputfile, paramfile ):
 
@@ -189,10 +93,10 @@ def  make_paramfile( inputfile, paramfile ):
     #ifile = sys.stdin
 
  
-    prmfile = open( paramfile , mode="w", encoding='cp932' )
+    prmfile = open( paramfile , mode="w", encoding='shift_jisx0213' )
 
     
-    ifile = open( inputfile, mode="r", encoding='cp932' )
+    ifile = open( inputfile, mode="r", encoding='shift_jisx0213' )
 
 
     csvreader = csv.reader( ifile )
@@ -227,7 +131,7 @@ def make_fix( param_file , input_path):
     if not os.path.exists(input_path ):
         os.mkdir(input_path)
 
-    with open( param_file , mode="r", encoding='cp932' ) as prmfile:
+    with open( param_file , mode="r", encoding='shift_jis' ) as prmfile:
 
         csvreader = csv.reader( prmfile )
 
@@ -250,7 +154,7 @@ def make_intersect3rd( param_file , input_path, ovl3rdpath, thirdmesh ,attrflag)
     if not os.path.exists(ovl3rdpath ):
         os.mkdir(ovl3rdpath)
 
-    with open( param_file , mode="r", encoding='cp932' ) as prmfile:
+    with open( param_file , mode="r", encoding='shift_jis' ) as prmfile:
 
         csvreader = csv.reader( prmfile )
 
@@ -279,7 +183,7 @@ def make_split( param_file,  ovl3rdpath, ovlsep, attrflag ):
     if not os.path.exists(ovlsep ):
         os.mkdir(ovlsep)
 
-    with open( param_file , mode="r", encoding='cp932' ) as prmfile:
+    with open( param_file , mode="r", encoding='shift_jis' ) as prmfile:
 
         csvreader = csv.reader( prmfile )
 
@@ -309,7 +213,7 @@ def make_5m( param_file,  ovlresult, ovlsep, thirdpath,  attrflag ):
     if not os.path.exists(ovlresult):
         os.mkdir(ovlresult)
 
-    with open( param_file , mode="r", encoding='cp932' ) as prmfile:
+    with open( param_file , mode="r", encoding='shift_jis' ) as prmfile:
 
         csvreader = csv.reader( prmfile )
 
@@ -365,26 +269,6 @@ def make_5m( param_file,  ovlresult, ovlsep, thirdpath,  attrflag ):
             #print( cmd_str )
                  subprocess.run(cmd_str, shell=True)
 
-def dummy( param_file , input_path):
-    print( param_file )
-       #  フォルダが無ければ作る
-
-    #if not os.path.exists(input_path ):
-    #    os.mkdir(input_path)
-
-    with open( param_file , mode="r", encoding='cp932' ) as prmfile:
-
-        csvreader = csv.reader( prmfile )
-
-        for  s_line in csvreader:
-
-            fname = s_line[0]
-            tgfname = s_line[1]
-
-            cmd_str = "qgis_process-qgis-ltr run native:fixgeometries  -- INPUT=\"" + tgfname + "\" OUTPUT=\"" + input_path + fname + "\"" 
-
-            print( cmd_str )
-            #subprocess.run(cmd_str, shell=True)
 
 
 def   DoOverlay( inputfile, attrflag  ):
@@ -427,11 +311,11 @@ def   DoOverlay( inputfile, attrflag  ):
 
 
 if __name__ == "__main__":
-    import doovlschemes
+    import argschemes
 
     #print("initializing...")
 
-    args = doovlschemes.ARGSCHEME.parse_args()
+    args = argschemes.ARGSCHEME.parse_args()
 
     input_file = args.inputfile
 
