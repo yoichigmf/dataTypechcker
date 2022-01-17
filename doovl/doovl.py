@@ -433,19 +433,19 @@ def create_5msql( thirdmesh, schema , ofp ):
         
             view2name = "\"" + schema + "\".\"map" + code + "\""
 
-            dropindex2 = "drop index if exists  idx_map_" + code + " ;\n"
+            dropindex2 = "drop index if exists \"" + schema + "\".idx_map_" + code + " ;\n"
 
             ofp.write( dropindex2  )
 
-            dropstr2 = "drop view if exists " + view2name + ";\n"
+            dropstr2 = "drop MATERIALIZED view if exists " + view2name + ";\n"
             ofp.write( dropstr2 )       
 
 
-            dropindex = "drop index if exists  idx_mv_" + code + " ;\n"
+            dropindex = "drop index if exists \"" + schema +  "\".idx_mv_" + code + " ;\n"
 
             ofp.write( dropindex  )
 
-            dropstr = "drop view if exists " + view1name + ";\n"
+            dropstr = "drop MATERIALIZED view if exists " + view1name + ";\n"
             ofp.write( dropstr )
 
             cstr = "create  MATERIALIZED VIEW " + view1name + " as\n" 
@@ -478,7 +478,7 @@ def create_5msql( thirdmesh, schema , ofp ):
 
             indexstr = "create unique index idx_map_" + code + " \n"
             indexstr2 = "on  " + view2name + " (ogc_fid) ;\n"
-            
+
             ofp.write( indexstr )
             ofp.write( indexstr2 )
             ofp.write( " \n" )
