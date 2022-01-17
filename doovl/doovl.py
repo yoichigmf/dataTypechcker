@@ -365,6 +365,150 @@ def make_5m( param_file,  ovlresult, ovlsep, thirdpath,  attrflag ):
             #print( cmd_str )
                  subprocess.run(cmd_str, shell=True)
 
+
+def make_thirdmesh_tables( thirdmesh, schema , ofp ):
+
+    driver = ogr.GetDriverByName('GPKG')
+    dataSource = driver.Open(thirdmesh, 0)
+
+    if dataSource is None:
+        print ('Could not open %s' % (ifname))
+    else:
+                          #print( 'Opened %s' % (ifname))
+
+        cstr = "drop schema  if exists \"" + schema + "\"  cascade;\n"
+        ofp.write(cstr )
+
+        sctr = "create schema \"" + schema + "\";\n" 
+
+        ofp.write(sctr)
+
+        layer = dataSource.GetLayer()
+        #featureCount = layer.GetFeatureCount()
+        #extent = layer.GetExtent()
+        #spatialRef = layer.GetSpatialRef()
+        for feature in layer:
+            code = feature.GetField("code")
+
+            tablename = "\"" + schema + "\".\"" + code + "\""
+
+            dropstr = "drop table if exists " + tablename + ";\n"
+            ofp.write( dropstr )
+
+            ofp.write("create table if not exists " + tablename + "\n" )
+            ofp.write( "(\n")
+            ofp.write( "ogc_fid serial,\n")
+            ofp.write( "code character varying COLLATE pg_catalog.\"default\",\n")
+            #ofp.write( "code character ,\n")
+            ofp.write( "SSS real ,\n")
+            ofp.write( "SSS_RANK  integer ,\n")
+            ofp.write( "primary key( ogc_fid)\n")            
+            ofp.write( ");\n\n")
+
+
+
+
+        #print( str(featureCount))
+
+
+def create_5msql( thirdmesh, schema , ofp ):
+    driver = ogr.GetDriverByName('GPKG')
+    dataSource = driver.Open(thirdmesh, 0)
+
+    if dataSource is None:
+        print ('Could not open %s' % (ifname))
+    else:
+                          #print( 'Opened %s' % (ifname))
+
+
+        #ofp.write(sctr)
+
+        layer = dataSource.GetLayer()
+
+        for feature in layer:
+            code = feature.GetField("code")
+            tablename = "\"" + schema + "\".\"" + code + "\""
+
+            view1name = "\"" + schema + "\".\"mv" + code + "\""
+        
+            view2name = "\"" + schema + "\".\"map" + code + "\""
+
+            dropindex2 = "drop index if exists  idx_map_" + code + " ;\n"
+
+            ofp.write( dropindex2  )
+
+            dropstr2 = "drop view if exists " + view2name + ";\n"
+            ofp.write( dropstr2 )       
+
+
+            dropindex = "drop index if exists  idx_mv_" + code + " ;\n"
+
+            ofp.write( dropindex  )
+
+            dropstr = "drop view if exists " + view1name + ";\n"
+            ofp.write( dropstr )
+
+            cstr = "create  MATERIALIZED VIEW " + view1name + " as\n" 
+            dstr = " select code, max(SSS) SSS,max(SSS_Rank) SSS_Rank FROM " + tablename + " group by code;\n"
+
+  
+
+            ofp.write( cstr )
+            ofp.write( dstr )  
+
+            # index
+
+            
+            indexstr = "create unique index idx_mv_" + code + " \n"
+            indexstr2 = "on  " + view1name + " (code) ;\n"
+          
+
+            ofp.write( indexstr )
+            ofp.write( indexstr2 )
+
+            cstr1 = "create  MATERIALIZED VIEW " + view2name + " as\n" 
+            cstr2 = "select t1.ogc_fid, t1.code, t1.fcode, v1.SSS, v1.SSS_Rank, t1.wkb_geometry \n"
+
+            cstr3 = "  from \"mesh\".\"" + code + "\" t1," + view1name +  " v1 \n"
+            cstr4 = "    where  t1.code = v1.code; \n"
+            ofp.write( cstr1 )
+            ofp.write( cstr2 )
+            ofp.write( cstr3 )
+            ofp.write( cstr4 )
+
+            indexstr = "create unique index idx_map_" + code + " \n"
+            indexstr2 = "on  " + view2name + " (ogc_fid) ;\n"
+            
+            ofp.write( indexstr )
+            ofp.write( indexstr2 )
+            ofp.write( " \n" )
+
+            
+  
+
+
+        
+
+        
+
+def load_csv_tables( csv_path, schema, ofp ):
+
+    #print(csv_path) 
+
+    files = glob.glob( csv_path + "/*.csv")
+    for file in files:
+         basename = os.path.basename(file)
+         #print(basename)
+         meshno = basename[7:15]
+        # print( meshno )
+         #nfile = file
+         nfile =  file.replace("\\", "/")
+
+         istr = "\\copy \"" + schema + "\".\"" + meshno + "\" (code,SSS,SSS_Rank) from " + "\'" + nfile + "\'  WITH CSV HEADER;\n"
+
+         ofp.write( istr )
+         #print( istr )
+
 def dummy( param_file , input_path):
     print( param_file )
        #  フォルダが無ければ作る
