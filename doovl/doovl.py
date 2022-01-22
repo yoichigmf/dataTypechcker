@@ -182,7 +182,7 @@ def chk_extent( param_file,  input_path,  newparam,   attrflag ):
 
 
 
-def  make_paramfile( inputfile, paramfile ):
+def  make_paramfile( inputfile, paramfile , csvpos):
 
 
     #sys.stdin  = codecs.getreader('shift_jis')(sys.stdin)
@@ -205,7 +205,7 @@ def  make_paramfile( inputfile, paramfile ):
 
         mstr = f'{fid:05}'
         
-        outstr = 'f' + mstr + "," + s_line[1]
+        outstr = 'f' + mstr + "," + s_line[csvpos]
         
         #print( outstr )
         
@@ -410,6 +410,40 @@ def make_thirdmesh_tables( thirdmesh, schema , ofp ):
 
         #print( str(featureCount))
 
+def create_geotiff( thirdmesh, schema , ofield, fieldtype, dbhost, dbname, dbuser, dbpasswd, outputfolder ):
+    driver = ogr.GetDriverByName('GPKG')
+    dataSource = driver.Open(thirdmesh, 0)
+
+    if dataSource is None:
+        print ('Could not open %s' % (ifname))
+    else:
+                          #print( 'Opened %s' % (ifname))
+
+        # folder が無ければ作成
+        if not os.path.exists(outputfolder):
+            os.mkdir(outputfolder)
+
+        #ofp.write(sctr)
+
+        layer = dataSource.GetLayer()
+
+        for feature in layer:
+            code = feature.GetField("code")
+
+            #print( code )
+            geom = feature.GetGeometryRef()
+            extent = geom.GetEnvelope()
+            #print( extent )
+            #print( extent[2])
+
+            gdalstr = "gdal_rasterize -l " + schema + ".map" + code + " -a " + ofield +  " -ts 100.0 100.0 -a_nodata 0.0 -te " 
+            gdalstr = gdalstr + str(extent[0]) + " " + str(extent[2]) + " " + str(extent[1]) + " " + str(extent[3] )
+            #130.7125 32.741666667 130.725 32.75" 
+            gdalstr = gdalstr +  " -ot " + fieldtype + " -of GTiff \"PG:dbname=\'" + dbname + "\' host=" + dbhost + " port=5432 user=\'" + dbuser + "\' password=\'" + dbpasswd + "\' sslmode=disable\"  "
+            gdalstr = gdalstr + outputfolder + "/" + ofield + code + ".tif"
+            print( gdalstr )
+
+
 
 def create_5msql( thirdmesh, schema , ofp ):
     driver = ogr.GetDriverByName('GPKG')
@@ -549,8 +583,11 @@ def   DoOverlay( inputfile, attrflag  ):
     thirdpath = './3rdmesh/'
 
     ovlresult  = './workfiles/ovlresult/'
+
+    csvpos = 1
+    
     #  パラメータファイルの作成
-    make_paramfile( inputfile, param_file )
+    make_paramfile( inputfile, param_file , csvpos)
 
     # ジオメトリ修復
     make_fix( param_file, input_path )
