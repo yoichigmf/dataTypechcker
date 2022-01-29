@@ -8,11 +8,11 @@ def  make_thirdmesh_tables( thirdmesh, schema ):
 
 
 if __name__ == "__main__":
-    import load5mtotblschemems
+    import load5mtotbl_fnoschemems
 
     #print("initializing...")
 
-    args = load5mtotblschemems.ARGSCHEME.parse_args()
+    args = load5mtotbl_fnoschemems.ARGSCHEME.parse_args()
 
     csv_path = args.csvpath
 
@@ -24,6 +24,7 @@ if __name__ == "__main__":
 
     csvpath =  args.csvpath 
 
+    pfile = args.parameterfile
 
 
     input_path =  './workfiles/ovlinput/'
@@ -34,6 +35,10 @@ if __name__ == "__main__":
 
     #schema = 'tdmesh'
 
+    if pfile is None:
+         print("no parameter file")
+         exit()
+
     if schema  is None:
        schema = "mesh5m"
 
@@ -42,16 +47,18 @@ if __name__ == "__main__":
         ofile = open( outputfile, "w", encoding="cp932")
          
 
+    logfile = sys.stdout
+
     
     attrflag = True
     # 3次メッシュとのIntersect
     #doovl.dummy( param_file, input_path )
 
     # create mesh id table script
-    doovl.make_thirdmesh_tables( thirdmesh, schema, ofile )
+    #doovl.make_thirdmesh_tables( thirdmesh, schema, ofile )
 
     #  load  csv to table script
-    doovl.load_csv_tables_all( csvpath, schema, ofile )
+    doovl.load_csv_tables_fileno( csvpath, pfile, schema, ofile, logfile )
 
     if outputfile is not None:
         ofile.close()

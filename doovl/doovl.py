@@ -15,6 +15,8 @@ import subprocess
 
 import uuid
 
+import datetime
+
 import codecs
 from osgeo import ogr
 
@@ -410,6 +412,43 @@ def make_thirdmesh_tables( thirdmesh, schema , ofp ):
 
         #print( str(featureCount))
 
+def cnvpostgis_gpkg( thirdmesh, schema ,  dbhost, dbname, dbuser, dbpasswd, outputfolder ):
+    driver = ogr.GetDriverByName('GPKG')
+    dataSource = driver.Open(thirdmesh, 0)
+
+    if dataSource is None:
+        print ('Could not open %s' % (ifname))
+    else:
+                          #print( 'Opened %s' % (ifname))
+
+        # folder が無ければ作成
+        if not os.path.exists(outputfolder):
+            os.mkdir(outputfolder)
+
+        #ofp.write(sctr)
+
+        layer = dataSource.GetLayer()
+
+        for feature in layer:
+            code = feature.GetField("code")
+
+            #print( code )
+            #geom = feature.GetGeometryRef()
+            #extent = geom.GetEnvelope()
+            #print( extent )
+            #print( extent[2])
+
+            gdalstr = "ogr2ogr  -f \"GPKG\" " + outputfolder + "/" + code + ".gpkg "
+          
+            gdalstr = gdalstr + "\"PG:dbname=\'" + dbname +"\' host=\'" + dbhost + "' port=5432 user=\'" + dbuser + "\' password=\'" + dbpasswd + "\' sslmode=disable\" "  
+            #str(extent[0]) + " " + str(extent[2]) + " " + str(extent[1]) + " " + str(extent[3] )
+            #130.7125 32.741666667 130.725 32.75" 
+            #gdalstr = gdalstr +  " -ot " + fieldtype + " -of GTiff \"PG:dbname=\'" + dbname + "\' host=" + dbhost + " port=5432 user=\'" + dbuser + "\' password=\'" + dbpasswd + "\' sslmode=disable\"  "
+            gdalstr = gdalstr + schema + ".map" + code 
+            print( gdalstr )
+
+
+
 def create_geotiff( thirdmesh, schema , ofield, fieldtype, dbhost, dbname, dbuser, dbpasswd, outputfolder ):
     driver = ogr.GetDriverByName('GPKG')
     dataSource = driver.Open(thirdmesh, 0)
@@ -519,13 +558,53 @@ def create_5msql( thirdmesh, schema , ofp ):
 
             
   
+#   ログの出力
+def  put_log( logfile, filename, rfilename, job,  message ):
 
+    dt_now = datetime.datetime.now()
 
+    dt_str = dt_now.isoformat()
+
+    write( logfile, dtstr + "," + filename + "," + rfilename + "," + job + "," + message + "\n")
         
 
-        
+# パラメーターファイル指定  ファイル番号単位 CSV ロード        
 
-def load_csv_tables( csv_path, schema, ofp ):
+def load_csv_tables_fileno( csv_path, pfile, schema, ofp, logfile ):
+
+    #print(csv_path) 
+    
+    
+    with open( pfile , mode="r", encoding='cp932' ) as prmfile:
+
+        csvreader = csv.reader( prmfile )
+
+        for  s_line in csvreader:
+            fname0 = s_line[0] 
+
+
+            files = glob.glob( csv_path + "/" + fname0 + "*.csv")
+            for file in files:
+                 basename = os.path.basename(file)
+                 #print(basename)
+                 meshno = basename[7:15]
+                 # print( meshno )
+                 #nfile = file
+                 nfile =  file.replace("\\", "/")
+
+                 istr = "\\copy \"" + schema + "\".\"" + meshno + "\" (code,SSS,SSS_Rank) from " + "\'" + nfile + "\'  WITH CSV HEADER;\n"
+
+                #put_log
+                 ofp.write( istr )
+
+
+                  #print( istr )
+
+ 
+ 
+#  ディレクトリ指定　全ファイル用　CSVアップロードスクリプト作製       
+
+def load_csv_tables_all( csv_path, schema, ofp ):
 
     #print(csv_path) 
 
