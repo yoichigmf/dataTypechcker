@@ -598,7 +598,7 @@ def  put_log( logfile, filename, rfilename, job,  message ):
 
 # パラメーターファイル指定  ファイル番号単位 CSV ロード        
 
-def load_csv_tables_fileno( csv_path, pfile, schema, ofp, logfile ):
+def load_csv_tables_fileno( csv_path, pfile, schema, ofp, logf ):
 
     #print(csv_path) 
     
