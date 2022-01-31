@@ -131,55 +131,55 @@ def chk_area( param_file,  ovl3rdpath,  newparam,   attrflag ):
 
 #  指定オーバーレイ結果ファイルのレコード数チェック
 #     レコード数 0 の場合指定領域外
-#     　　パラメータファイルノ書き直し   範囲外データを除去する
+#     　
 #
 
      
-def chk_extent( param_file,  input_path,  newparam,   attrflag ):
+def chk_extent( param_file,  input_path,    attrflag ):
 
     with open( param_file , mode="r", encoding='cp932' ) as prmf:
 
 
-         count = 0
+        count = 0
     
-         with open( newparam, mode="w", encoding='cp932' ) as newp:
+         #with open( newparam, mode="w", encoding='cp932' ) as newp:
 
-                 csvreader = csv.reader( prmf )
+        csvreader = csv.reader( prmf )
 
-                 driver = ogr.GetDriverByName('GPKG')
-                 for  s_line in csvreader:
+        driver = ogr.GetDriverByName('GPKG')
+        for  s_line in csvreader:
 
-                     fname = s_line[0]
-                     ifname = input_path + "/" + fname + ".gpkg"
+            fname = s_line[0]
+            ifname = input_path + "/" + fname + ".gpkg"
 
-                     dataSource = driver.Open(ifname, 0)
+            dataSource = driver.Open(ifname, 0)
 
-                     if dataSource is None:
-                          print ('Could not open %s' % (ifname))
-                     else:
+            if dataSource is None:
+                print ('Could not open %s' % (ifname))
+            else:
                           #print( 'Opened %s' % (ifname))
-                          layer = dataSource.GetLayer()
-                          featureCount = layer.GetFeatureCount()
-                          extent = layer.GetExtent()
-                          spatialRef = layer.GetSpatialRef()
-                          spatialRef.AutoIdentifyEPSG()
+                layer = dataSource.GetLayer()
+                featureCount = layer.GetFeatureCount()
+                extent = layer.GetExtent()
+                spatialRef = layer.GetSpatialRef()
+                spatialRef.AutoIdentifyEPSG()
 
-                          feature = layer.GetNextFeature()
-                          geometry = feature.GetGeometryRef()
-
-
+                feature = layer.GetNextFeature()
+                geometry = feature.GetGeometryRef()
 
 
 
-                          print ("Number of features in %s: %d  %f %f %f %f %s %s" % (ifname,featureCount,extent[0],extent[1],extent[2],extent[3], spatialRef.GetName(),geometry.GetGeometryName()))
 
-                          if featureCount > 0:
-                               count = count + 1
+
+                print (" %s: %d  %f %f %f %f %s %s" % (ifname,featureCount,extent[0],extent[1],extent[2],extent[3], spatialRef.GetName(),geometry.GetGeometryName()))
+
+                if featureCount > 0:
+                    count = count + 1
 
                     # layer = dataSource.GetLayer()
                     # print( ifname )
 
-         print( "Number of data contain  %d" % (count))
+        print( "Number of data contain  %d" % (count))
            # cmd_str = "qgis_process-qgis-ltr run native:fixgeometries  -- INPUT=\"" + tgfname + "\" OUTPUT=\"" + input_path + fname + "\"" 
 
 
@@ -221,13 +221,18 @@ def  make_paramfile( inputfile, paramfile , csvpos):
         ifile.close()
 
 
-def make_fix( param_file , input_path):
+def make_fix( param_file , input_path, logfilename ):
 
 
     #  フォルダが無ければ作る
 
     if not os.path.exists(input_path ):
         os.mkdir(input_path)
+
+    logf = None
+    if logfilename  is not None:
+        logf = open( logfilename, mode="a" )
+
 
     with open( param_file , mode="r", encoding='cp932' ) as prmfile:
 
@@ -241,10 +246,19 @@ def make_fix( param_file , input_path):
             cmd_str = "qgis_process-qgis-ltr run native:fixgeometries  -- INPUT=\"" + tgfname + "\" OUTPUT=\"" + input_path + fname + "\"" 
 
             #print( cmd_str )
-            subprocess.run(cmd_str, shell=True)
+            #res = subprocess.run(cmd_str, shell=True, capture_output=True, text=True)
+            res = subprocess.run(cmd_str, shell=True, text=True)
+            if res.returncode == 0:   
+                if logf is not None:
+                    put_log( logf, fname, tgfname, "fixgeometries",  "OK" )
+            else:
+                    put_log( logf, fname, tgfname, "fixgeometries",  "ERROR" )           
+
+    if logf is not None:
+        logf.close()
 
 
-def make_intersect3rd( param_file , input_path, ovl3rdpath, thirdmesh ,attrflag):
+def make_intersect3rd( param_file , input_path, ovl3rdpath, thirdmesh ,attrflag, logfp):
 
 
     #  フォルダが無ければ作る
@@ -259,7 +273,7 @@ def make_intersect3rd( param_file , input_path, ovl3rdpath, thirdmesh ,attrflag)
         for  s_line in csvreader:
             fname0 = s_line[0] 
             fname = s_line[0] + ".gpkg"
-            #tgfname = s_line[1]
+            tgfname = s_line[1]
 
             cmd_str = "qgis_process-qgis-ltr run qgis:intersection    -- INPUT=\"" + thirdmesh  + "\" OVERLAY=\"" + input_path + fname + "\" INPUT_FIELDS=code OUTPUT=\""  + ovl3rdpath + fname0 + "\""
 
@@ -270,10 +284,17 @@ def make_intersect3rd( param_file , input_path, ovl3rdpath, thirdmesh ,attrflag)
                 cmd_str = cmd_str + " OVERLAY_FIELDS=None OVERLAY_FIELDS_PREFIX="
 
             #print( cmd_str )
-            subprocess.run(cmd_str, shell=True)
+            res = subprocess.run(cmd_str, shell=True,  text=True)
+
+            if logfp is not None:
+                if res.returncode == 0:  
+                    put_log( logfp, fname0, tgfname, "intersect3rd",  "OK" )
+                else: 
+
+                    put_log( logfp, fname0, tgfname, "intersect3rd",  "ERROR"  )              
 
 
-def make_split( param_file,  ovl3rdpath, ovlsep, attrflag ):
+def make_split( param_file,  ovl3rdpath, ovlsep, attrflag, logfp ):
 
 
     #  フォルダが無ければ作る
@@ -288,6 +309,8 @@ def make_split( param_file,  ovl3rdpath, ovlsep, attrflag ):
         for  s_line in csvreader:
             fname0 = s_line[0] 
 
+            tgfname = s_line[1]
+
             tgpath = ovlsep + fname0
             if not os.path.exists( tgpath ):
                  os.mkdir(tgpath)
@@ -300,10 +323,20 @@ def make_split( param_file,  ovl3rdpath, ovlsep, attrflag ):
 
 
             #print( cmd_str )
-            subprocess.run(cmd_str, shell=True)
+            res =  subprocess.run(cmd_str, shell=True,  text=True)
+
+            if logfp is not None:
+                if res.returncode == 0:  
+                    put_log( logfp, fname0, tgfname, "split",  "OK" )
+                else: 
+
+                    put_log( logfp, fname0, tgfname, "split",  "ERROR"  )    
 
 
-def make_5m( param_file,  ovlresult, ovlsep, thirdpath,  attrflag ):
+
+
+
+def make_5m( param_file,  ovlresult, ovlsep, thirdpath,  attrflag, logfp  ):
 
 
     #  フォルダが無ければ作る
@@ -318,6 +351,7 @@ def make_5m( param_file,  ovlresult, ovlsep, thirdpath,  attrflag ):
         for  s_line in csvreader:
             fname0 = s_line[0] 
 
+            tgfname = s_line[1]
             tgpath = ovlsep + fname0
             #if not os.path.exists( tgpath ):
             #     os.mkdir(tgpath)
@@ -326,19 +360,7 @@ def make_5m( param_file,  ovlresult, ovlsep, thirdpath,  attrflag ):
             result_path =  ovlresult + fname0
 
             fname = s_line[0] + ".gpkg"
-            #tgfname = s_line[1]
-
-            #cmd_str = "qgis_process-qgis-ltr run qgis:intersection    -- INPUT=\"" + thirdmesh  + "\" OVERLAY=\"" + input_path + fname + "\" INPUT_FIELDS=code OUTPUT=\""  + ovl3rdpath + fname0 + "\""
-
-            #if attrflag:
-            #    cmd_str = cmd_str + " OVERLAY_FIELDS=SSS,SSS_Rank OVERLAY_FIELDS_PREFIX="
-           # else:
-            #    cmd_str = cmd_str + " OVERLAY_FIELDS= OVERLAY_FIELDS_PREFIX="
-
-
-
-            #cmd_str = "qgis_process-qgis-ltr run  native:splitvectorlayer    -- INPUT=\"" + ovl3rdpath + fname  + "\" FIELD=code FILE_TYPE=0 OUTPUT=\""  + tgpath + "\""
-
+          
             files = glob.glob(tgpath + "/*.gpkg")
             for file in files:
 
@@ -362,10 +384,16 @@ def make_5m( param_file,  ovlresult, ovlsep, thirdpath,  attrflag ):
 
                  print( cmd_str )
 
-                 #print(rf[1])
-            #cmd_str = "dir  " + tgpath + "\*.*"
-            #print( cmd_str )
-                 subprocess.run(cmd_str, shell=True)
+
+                 res = subprocess.run(cmd_str, shell=True,  text=True)
+
+                 
+                 if logfp is not None:
+                   if res.returncode == 0:  
+                       put_log( logfp, output_f, tgfname, "5movl",  "OK" )
+                   else: 
+
+                       put_log( logfp, output_f, tgfname, "5movl",  "ERROR"  )    
 
 
 def make_thirdmesh_tables( thirdmesh, schema , ofp ):
@@ -565,7 +593,7 @@ def  put_log( logfile, filename, rfilename, job,  message ):
 
     dt_str = dt_now.isoformat()
 
-    write( logfile, dtstr + "," + filename + "," + rfilename + "," + job + "," + message + "\n")
+    logfile.write( dt_str + "," + filename + "," + rfilename + "," + job + "," + message + "\n")
         
 
 # パラメーターファイル指定  ファイル番号単位 CSV ロード        
@@ -644,45 +672,62 @@ def dummy( param_file , input_path):
             #subprocess.run(cmd_str, shell=True)
 
 
-def   DoOverlay( inputfile, attrflag  ):
+def   DoOverlay( param_file, workfolder,  logfile, attrflag   ):
 
     #  パラメータファイル名をユニークファイル名に変更  2022/1/7
-    unique_filename = str(uuid.uuid4())
+    #unique_filename = str(uuid.uuid4())
 
-    param_file = "scripts/" + unique_filename + ".csv"
+    #param_file = "scripts/" + unique_filename + ".csv"
 
     input_path =  './workfiles/ovlinput/'
-
     ovl3rdpath = './workfiles/ovl3rd/'
+    ovlsep  = './workfiles/ovlsplit/'
+    ovlresult  = './workfiles/ovlresult/'
+
+    if workfolder is not None:
+        input_path = workfolder + "/ovlinput/"
+        ovl3rdpath = workfolder + "/ovl3rd/"
+        ovlsep = workfolder + "/ovlsplit/"
+        ovlresult = workfolder + "/ovlresult/"
+
 
     thirdmesh = './3rdmesh/mesh3.gpkg'
 
-    ovlsep  = './workfiles/ovlsplit/'
+
 
     thirdpath = './3rdmesh/'
 
-    ovlresult  = './workfiles/ovlresult/'
+
 
     csvpos = 1
+
+    logfp = None
+
+    if logfile is not None:
+        logfp = open( logfile, mode="a")
     
     #  パラメータファイルの作成
-    make_paramfile( inputfile, param_file , csvpos)
+    #make_paramfile( inputfile, param_file , csvpos)
 
     # ジオメトリ修復
-    make_fix( param_file, input_path )
+    #make_fix( param_file, input_path )
 
      # 3次メッシュとのIntersect
 
-    make_intersect3rd(  param_file, input_path, ovl3rdpath, thirdmesh, attrflag )
+    make_intersect3rd(  param_file, input_path, ovl3rdpath, thirdmesh, attrflag, logfp )
 
 
     #  3次メッシュコード別分割
 
-    make_split( param_file,  ovl3rdpath, ovlsep, attrflag )
+    make_split( param_file,  ovl3rdpath, ovlsep, attrflag , logfp)
 
     # 5m mesh  overlay
 
-    make_5m( param_file, ovlresult, ovlsep, thirdpath , attrflag  )
+    make_5m( param_file, ovlresult, ovlsep, thirdpath , attrflag , logfp )
+
+
+    if logfile is not None: 
+        logfp.close()
 
 
 
@@ -693,8 +738,11 @@ if __name__ == "__main__":
 
     args = doovlschemes.ARGSCHEME.parse_args()
 
-    input_file = args.inputfile
+    paramfile = args.paramfile
+    workfolder = args.workfolder
+    #schema = args.schema
+    logfile = args.logfile
 
     attrflag = True
-    DoOverlay( input_file , attrflag )
+    DoOverlay( paramfile, workfolder,  logfile, attrflag   )
 
