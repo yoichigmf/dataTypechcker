@@ -5,13 +5,14 @@ import jismesh.utils as ju
 
 import sys
 import os
+import subprocess
 
 import json
 from osgeo import ogr
 
 
 
-def create4thmesh( thirdmesh, schema,  dbhost, dbname, dbuser, dbpasswd,outputfolder ):
+def create4thmesh( thirdmesh, schema,  dbhost, dbname, dbuser, dbpasswd, workfolder, outputfolder ):
     driver = ogr.GetDriverByName('GPKG')
     dataSource = driver.Open(thirdmesh, 0)
 
@@ -23,46 +24,48 @@ def create4thmesh( thirdmesh, schema,  dbhost, dbname, dbuser, dbpasswd,outputfo
         # folder が無ければ作成
         if not os.path.exists(outputfolder):
             os.mkdir(outputfolder)
+            
+        if not os.path.exists( workfolder ):
+            os.mkdir( workfolder )
 
         #ofp.write(sctr)
+        
+        jsonf = workfolder + "/4th.geojsonl"
+        
+        gpkg = outputfolder + "/4themesh.gpkg"
+        
+        with open( jsonf  , mode="w", encoding="UTF-8" ) as gsl:
+        
 
-        layer = dataSource.GetLayer()
+            layer = dataSource.GetLayer()
 
-        for feature in layer:
-            code = feature.GetField("code")
+            for feature in layer:
+                code = feature.GetField("code")
             
-            for ct in range(4):
+                for ct in range(4):
             
-                ncode = code + str((ct+1))
+                    ncode = code + str((ct+1))
 
                 #print(ncode)
-                lat_sw, lon_sw = ju.to_meshpoint(ncode, 0, 0)
+                    lat_sw, lon_sw = ju.to_meshpoint(ncode, 0, 0)
                 #print(lat_sw, lon_sw)
-                lat_ne, lon_ne = ju.to_meshpoint(ncode, 1, 1)
+                    lat_ne, lon_ne = ju.to_meshpoint(ncode, 1, 1)
                 #print(lat_ne, lon_ne)
             
             
-                jstr = "{\"type\":\"Feature\",\"geometry\":{\"type\":\"Polygon\",\"coordinates\":"
-                jstr = jstr + "[[[" + str(lon_sw) + ", " + str(lat_sw) + "], [" + str(lon_sw) + ", " + str(lat_ne) + "], ["
+                    jstr = "{\"type\":\"Feature\",\"geometry\":{\"type\":\"Polygon\",\"coordinates\":"
+                    jstr = jstr + "[[[" + str(lon_sw) + ", " + str(lat_sw) + "], [" + str(lon_sw) + ", " + str(lat_ne) + "], ["
                 
-                jstr = jstr + str(lon_ne ) + ", " + str(lat_ne) + "], [" + str( lon_ne )+"," + str(lat_sw )  + "], [" + str(lon_sw) + ", " + str(lat_sw) + "]]]},"
-                jstr = jstr + "\"properties\":{\"code\":\"" + ncode + "\"}}"
+                    jstr = jstr + str(lon_ne ) + ", " + str(lat_ne) + "], [" + str( lon_ne )+"," + str(lat_sw )  + "], [" + str(lon_sw) + ", " + str(lat_sw) + "]]]},"
+                    jstr = jstr + "\"properties\":{\"code\":\"" + ncode + "\"}}"
 
-                print( jstr )
+                    print( jstr , file=gsl)
+                    print( jstr )
             
-         #   {"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[129.975, 32.141666666666666], [129.975, 32.141708333333334], [129.9750625, 32.141708333333334], [129.9750625, 32.141666666666666], [129.975, 32.141666666666666]]]},"properties":{"code":"48291778000000", "fcode":"482917781"}}
+        ogrstr = "ogr2ogr -f \"GPKG\" " + gpkg + " " + jsonf + " 4th"
+     
 
-        
-
-            #gdalstr = "ogr2ogr  -f \"GPKG\" " + outputfolder + "/" + code + ".gpkg "
-          
-            #gdalstr = gdalstr + "\"PG:dbname=\'" + dbname +"\' host=\'" + dbhost + "' port=5432 user=\'" + dbuser + "\' password=\'" + dbpasswd + "\' sslmode=disable\" "  
-   
-            #gdalstr = gdalstr + schema + ".map" + code 
-            #print( gdalstr )
-
-
-
+        res = subprocess.run( ogrstr, shell=True, text=True)
 
 
 if __name__ == "__main__":
@@ -91,7 +94,10 @@ if __name__ == "__main__":
 #    ovlsep  = './workfiles/ovlsplit/'
 
     if outputfolder is None:
-         outputfolder= './workfiles/4themesh'
+         outputfolder= './4thmesh'
+         
+    if workfolder is None:
+         workfolder = './workfiles/4thmesh'
     
     #schema = 'tdmesh'
 
@@ -128,7 +134,7 @@ if __name__ == "__main__":
 
 
     #doovl.cnvpostgis_gpkg( thirdmesh, schema,  dbhost, dbname, dbuser, dbpasswd,outputfolder )
-    create4thmesh( thirdmesh, schema,  dbhost, dbname, dbuser, dbpasswd,outputfolder )
+    create4thmesh( thirdmesh, schema,  dbhost, dbname, dbuser, dbpasswd, workfolder, outputfolder )
     #print( dbhost)
     #print(dbname)
 
