@@ -12,12 +12,12 @@ from osgeo import ogr
 
 
 
-def create4thmesh( thirdmesh, schema,  dbhost, dbname, dbuser, dbpasswd, workfolder, outputfolder ):
+def create4thmesh( thirdmesh, schema,  tablename, dbhost, dbname, dbuser, dbpasswd, workfolder, outputfolder, filename  ):
     driver = ogr.GetDriverByName('GPKG')
     dataSource = driver.Open(thirdmesh, 0)
 
     if dataSource is None:
-        print ('Could not open %s' % (ifname))
+        print ('Could not open %s' % (thirdmesh))
     else:
                           #print( 'Opened %s' % (ifname))
 
@@ -32,7 +32,8 @@ def create4thmesh( thirdmesh, schema,  dbhost, dbname, dbuser, dbpasswd, workfol
         
         jsonf = workfolder + "/4th.geojsonl"
         
-        gpkg = outputfolder + "/4themesh.gpkg"
+        #gpkg = outputfolder + "/4themesh.gpkg"
+        gpkg =  outputfolder + "/" + filename
         
         with open( jsonf  , mode="w", encoding="UTF-8" ) as gsl:
         
@@ -62,10 +63,17 @@ def create4thmesh( thirdmesh, schema,  dbhost, dbname, dbuser, dbpasswd, workfol
                     print( jstr , file=gsl)
                     print( jstr )
             
-        ogrstr = "ogr2ogr -f \"GPKG\" " + gpkg + " " + jsonf + " 4th"
+        ogrstr = "ogr2ogr -f \"GPKG\" " + gpkg + " " + jsonf + " 4thmesh"
      
 
         res = subprocess.run( ogrstr, shell=True, text=True)
+
+        print( ogrstr )
+
+        ogpgstr = "ogr2ogr -f \"PostgreSQL\" PG:\"host=" + dbhost + " user=" + dbuser + " password=" + dbpasswd + " dbname=" + dbname + "\" " +  " -nln "+ schema  + "." + tablename  + " -append " + gpkg
+
+        res = subprocess.run( ogpgstr, shell=True, text=True)
+        print( ogpgstr )
 
 
 if __name__ == "__main__":
@@ -82,6 +90,10 @@ if __name__ == "__main__":
     workfolder = args.workfolder
 
     outputfolder = args.outputfolder
+
+    tablename = args.tablename
+
+    filename = args.filename
 
 
     #output_field = args.field
@@ -118,8 +130,14 @@ if __name__ == "__main__":
     dbpasswd  = json_load["DBPASSWD"]
 
     if schema  is None:
-         schema = "mesh4th"
+         schema = "mesh"
 
+    if tablename  is None:
+        tablename = "fmesh"
+
+
+    if filename is None:
+        filename = "4themesh.gpkg"
     #file = sys.stdout
     #if outputfile is not None:
     #    ofile = open( outputfile, "w", encoding="cp932")
@@ -134,7 +152,7 @@ if __name__ == "__main__":
 
 
     #doovl.cnvpostgis_gpkg( thirdmesh, schema,  dbhost, dbname, dbuser, dbpasswd,outputfolder )
-    create4thmesh( thirdmesh, schema,  dbhost, dbname, dbuser, dbpasswd, workfolder, outputfolder )
+    create4thmesh( thirdmesh, schema,  tablename,  dbhost, dbname, dbuser, dbpasswd, workfolder, outputfolder, filename )
     #print( dbhost)
     #print(dbname)
 
