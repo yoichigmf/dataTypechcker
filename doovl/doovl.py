@@ -16,6 +16,9 @@ import subprocess
 import uuid
 
 import datetime
+import tempfile
+import shutil
+
 
 import codecs
 from osgeo import ogr
@@ -221,6 +224,93 @@ def  make_paramfile( inputfile, paramfile , csvpos):
         ifile.close()
 
 
+def isNumeric(parameter):
+    if not parameter.isdecimal():
+        try:
+            float(parameter)
+            return True
+        except ValueError:
+            return False
+    else:
+        return True
+
+def  csv_mod( csvfile ):
+
+
+    #sys.stdin  = codecs.getreader('shift_jis')(sys.stdin)
+    #ifile = sys.stdin
+
+ 
+    #prmfile = open( paramfile , mode="w", encoding='cp932' )
+    fp = tempfile.NamedTemporaryFile(mode='w', encoding='cp932', delete=False)
+    
+    fname = fp.name
+
+    with open( csvfile , mode="r", encoding='cp932' ) as  ifile:
+
+
+    #csvreader = csv.reader( ifile )
+    
+
+        iflag = False
+        
+        fid = 0
+        for s_line in ifile:
+
+            
+            if fid > 0 :
+
+                sl = s_line.split(',')
+
+                ns=sl[1].replace('"','')
+
+                
+                if not isNumeric(ns):
+                    #print( "not numeric" )
+                    #print( ns )
+                    n_line = sl[0]+ ",\"0\","+ sl[2] 
+
+                    iflag = True
+                    fp.write( n_line )
+
+                else:
+                    fp.write( s_line )
+            else:
+                fp.write( s_line )
+
+            fid = fid + 1
+
+        #print( fname )
+        fp.close()
+        if iflag:
+
+            nfname = csvfile  + ".csv"
+            shutil.copy(fname, csvfile )
+        #os.rename( fname, "sample.csv")
+
+
+            #print( s_line )
+
+        #print( s_line[1])
+        #mstr = f'{fid:05}'
+        
+        #outstr = 'f' + mstr + "," + s_line[csvpos]
+        
+
+def   FilterCSV( folder   ):
+
+          
+    files = glob.glob( folder + "/*.csv")
+    for file in files:
+
+        csvfname = os.path.basename( file )
+        file_name =os.path.splitext( csvfname)[0]
+
+        csv_mod( file )
+
+        #print( file )
+
+
 def make_fix( param_file , input_path, logfilename ):
 
 
@@ -395,6 +485,14 @@ def make_5m( param_file,  ovlresult, ovlsep, thirdpath,  attrflag, logfp  ):
 
                        put_log( logfp, output_f, tgfname, "5movl",  "ERROR"  )    
 
+def make_4thesql( ischema,  schema,  tablename, outputfile,  thirdmesh ):
+
+    driver = ogr.GetDriverByName('GPKG')
+    dataSource = driver.Open(thirdmesh, 0)
+
+    if dataSource is None:
+        print ('Could not open %s' % (thirdmesh))
+
 
 def make_thirdmesh_tables( thirdmesh, schema , ofp ):
 
@@ -402,7 +500,7 @@ def make_thirdmesh_tables( thirdmesh, schema , ofp ):
     dataSource = driver.Open(thirdmesh, 0)
 
     if dataSource is None:
-        print ('Could not open %s' % (ifname))
+        print ('Could not open %s' % (thirdmesh))
     else:
                           #print( 'Opened %s' % (ifname))
 
@@ -725,6 +823,8 @@ def   DoOverlay( param_file, workfolder,  logfile, attrflag   ):
 
     make_5m( param_file, ovlresult, ovlsep, thirdpath , attrflag , logfp )
 
+
+    FilterCSV( ovlresult  )
 
     if logfile is not None: 
         logfp.close()
