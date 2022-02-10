@@ -487,11 +487,79 @@ def make_5m( param_file,  ovlresult, ovlsep, thirdpath,  attrflag, logfp  ):
 
 def make_4thesql( ischema,  schema,  tablename, outputfile,  thirdmesh ):
 
+
     driver = ogr.GetDriverByName('GPKG')
     dataSource = driver.Open(thirdmesh, 0)
 
+    ofp = sys.stdout
+
+    if outputfile is not None:
+        ofp = open( outputfile, "w" )
+
+
+    #   create schema
+
+    schemastr = "create schema if not exists \"" + schema + "\";\n"
+
+    ofp.write( schemastr )
+
+    # drop table table
+
+    ntablename = "\"" + schema + "\".\"" + tablename + "\""
+
+    drpstr = "drop table if exists " + ntablename + ";\n"
+
+    ofp.write( drpstr )
+
+    # create table
+
+    crstr = "create table " + ntablename + "\n"
+
+    ofp.write( crstr )
+
+    crstr = "(\n"
+    ofp.write( crstr )
+
+    crstr =   "fcode  text, \n"
+    ofp.write( crstr )     
+
+    crstr =   "nc  bigint, \n"
+    ofp.write( crstr )  
+    crstr =   " constraint \"key_" + tablename + "\" PRIMARY KEY (fcode) \n"
+    ofp.write( crstr )     
+
+    crstr = ");\n"
+    ofp.write( crstr )   
+
     if dataSource is None:
         print ('Could not open %s' % (thirdmesh))
+
+    else:
+
+        layer = dataSource.GetLayer()
+
+
+        #  3次メッシュコードのリスト
+        for feature in layer:
+            code = feature.GetField("code")
+
+
+            viewname = "\"" + ischema + "\".\"map" + code + "\""
+            istr = "insert into " + ntablename + "\n"
+            ofp.write( istr )
+            istr = "(\n"
+            ofp.write( istr )        
+            istr =  "fcode,\n"
+            ofp.write( istr )   
+            istr =  "nc \n"
+            ofp.write( istr )  
+            istr = ")\n"
+            ofp.write( istr ) 
+            sstr = "select fcode, count(*) nc  from " + viewname + " group by fcode;\n"
+            ofp.write( sstr )  
+
+    if outputfile is not None:
+        ofp.close()
 
 
 def make_thirdmesh_tables( thirdmesh, schema , ofp ):
