@@ -585,8 +585,13 @@ def make_thirdmesh_tables( thirdmesh, schema , ofp ):
         #spatialRef = layer.GetSpatialRef()
         for feature in layer:
             code = feature.GetField("code")
+            
+            scode = code
+            
+            if type( code ) != str:
+                scode = str( code )
 
-            tablename = "\"" + schema + "\".\"" + code + "\""
+            tablename = "\"" + schema + "\".\"" + scode + "\""
 
             dropstr = "drop table if exists " + tablename + ";\n"
             ofp.write( dropstr )
