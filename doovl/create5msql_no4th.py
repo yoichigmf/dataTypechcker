@@ -52,8 +52,9 @@ if __name__ == "__main__":
 
     #  load  csv to table script
     #doovl.load_csv_tables( csvpath, schema, ofile )
+    
+    forth = False
 
-    forth = True
     doovl.create_5msql( thirdmesh, schema, ofile, forth )
 
     if outputfile is not None:

@@ -682,13 +682,13 @@ def create_geotiff( thirdmesh, schema , ofield, fieldtype, dbhost, dbname, dbuse
             print( gdalstr )
 
 
-
-def create_5msql( thirdmesh, schema , ofp ):
+#  add argument forth
+def create_5msql( thirdmesh, schema , ofp, forth ):
     driver = ogr.GetDriverByName('GPKG')
     dataSource = driver.Open(thirdmesh, 0)
 
     if dataSource is None:
-        print ('Could not open %s' % (ifname))
+        print ('Could not open %s' % (thirdmesh))
     else:
                           #print( 'Opened %s' % (ifname))
 
@@ -699,6 +699,9 @@ def create_5msql( thirdmesh, schema , ofp ):
 
         for feature in layer:
             code = feature.GetField("code")
+
+            code = str( code )
+
             tablename = "\"" + schema + "\".\"" + code + "\""
 
             view1name = "\"" + schema + "\".\"mv" + code + "\""
@@ -739,8 +742,12 @@ def create_5msql( thirdmesh, schema , ofp ):
             ofp.write( indexstr2 )
 
             cstr1 = "create  MATERIALIZED VIEW " + view2name + " as\n" 
-            #cstr2 = "select t1.ogc_fid, t1.code, t1.fcode, v1.SSS, v1.SSS_Rank, t1.wkb_geometry \n"
-            cstr2 = "select t1.ogc_fid, t1.code,  v1.SSS, v1.SSS_Rank, t1.wkb_geometry \n"
+
+            if forth:
+                cstr2 = "select t1.ogc_fid, t1.code, t1.fcode, v1.SSS, v1.SSS_Rank, t1.wkb_geometry \n"
+            else:
+                cstr2 = "select t1.ogc_fid, t1.code,  v1.SSS, v1.SSS_Rank, t1.wkb_geometry \n"
+            
             cstr3 = "  from \"mesh\".\"" + code + "\" t1," + view1name +  " v1 \n"
             cstr4 = "    where cast( t1.code as character varying) = v1.code; \n"
             ofp.write( cstr1 )
