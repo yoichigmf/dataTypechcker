@@ -22,7 +22,7 @@ def toUnicode(encodedStr):
             pass
 
 
-def   checkShapeFile( inputfile  , outputfile, resultfile):
+def   checkPolygonFiles( inputfile  , outputfile, resultfile):
 
     #daShapefile = r"G:\work\NHK_kumamoto\210909HDD\kumamoto\430005kumamotoken\その1\1 筑後川\L1\MAXALL.SHP"
     #daShapefile = r"C:\Temp\Voting_Centers_and_Ballot_Sites.shp"
@@ -204,15 +204,15 @@ def   checkShapeFile( inputfile  , outputfile, resultfile):
 
 
 if __name__ == "__main__":
-    import chkargschemes
+    import polchkargschemes
 
     #print("initializing...")
 
-    args = chkargschemes.ARGSCHEME.parse_args()
+    args = polchkargschemes.ARGSCHEME.parse_args()
 
     input_file = args.inputfile
     output_file  = args.output_file
     result_file  = args.result
 
-    checkShapeFile( input_file, output_file, result_file  )
+    checkPolygonFiles( input_file, output_file, result_file  )
 

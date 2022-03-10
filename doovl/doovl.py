@@ -904,7 +904,8 @@ def   DoOverlay( param_file, workfolder,  logfile, attrflag   ):
     make_5m( param_file, ovlresult, ovlsep, thirdpath , attrflag , logfp )
 
 
-    FilterCSV( ovlresult  )
+    if attrflag:
+        FilterCSV( ovlresult  )
 
     if logfile is not None: 
         logfp.close()
@@ -923,6 +924,13 @@ if __name__ == "__main__":
     #schema = args.schema
     logfile = args.logfile
 
+    attribute = args.ATTRIBUTE
+
     attrflag = True
+
+    if attribute is not None:
+        if attribute == "NONE":
+            attrflag = False
+
     DoOverlay( paramfile, workfolder,  logfile, attrflag   )
 

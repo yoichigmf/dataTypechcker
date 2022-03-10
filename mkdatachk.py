@@ -19,8 +19,10 @@ for row in cin:
     #table = mid[0:4]
     #table = mid
 
+#    print( "python dataTypechecker\dataTypechecker.py  \"g:\\work\\NHK_kumamoto\\" + fname + "\" -o output.csv  -r result.csv" )
+
     #if ln > 0 :
-    print( "python dataTypechecker\dataTypechecker.py  \"g:\\work\\NHK_kumamoto\\" + fname + "\" -o output.csv  -r result.csv" )
+    print( "python G:/work/NHK_kumamoto/dataTypechecker/dataTypechecker\dataTypechecker.py  \"" + fname + "\" -o output.csv  -r result.csv" )
          #print("{ \"PARAMETERS\": {\"EXTENT\":\"\'" + dxmin + "," + dxmax +"," + dymin+"," + dymax +" [EPSG:6668]\'\",\"LEVEL\": \"9\"}, \"OUTPUTS\": {\"OUTPUT\":\"F:/work/NHK_kumamoto/mesh/mesh/" + mid + ".geojson\"}}")
          #print(row[1])  # または print(line.rstrip())
          #print("}")
