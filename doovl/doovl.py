@@ -724,7 +724,7 @@ def create_5msql( thirdmesh, schema , ofp, forth ):
             ofp.write( dropstr )
 
             cstr = "create  MATERIALIZED VIEW " + view1name + " as\n" 
-            dstr = " select code, max(SSS) SSS,max(SSS_Rank) SSS_Rank FROM " + tablename + " group by code;\n"
+            dstr = " select distinct(code), max(SSS) SSS,max(SSS_Rank) SSS_Rank FROM " + tablename + " group by code;\n"
 
   
 
