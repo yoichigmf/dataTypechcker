@@ -682,6 +682,67 @@ def create_geotiff( thirdmesh, schema , ofield, fieldtype, dbhost, dbname, dbuse
             print( gdalstr )
 
 
+
+def create_5mmapvsql( thirdmesh, schema , ofp, forth ):
+
+    driver = ogr.GetDriverByName('GPKG')
+    dataSource = driver.Open(thirdmesh, 0)
+
+    if dataSource is None:
+        print ('Could not open %s' % (thirdmesh))
+    else:
+                          #print( 'Opened %s' % (ifname))
+
+
+        #ofp.write(sctr)
+
+        layer = dataSource.GetLayer()
+
+        for feature in layer:
+            code = feature.GetField("code")
+
+            code = str( code )
+
+            tablename = "\"" + schema + "\".\"" + code + "\""
+
+            view1name = "\"" + schema + "\".\"mv" + code + "\""
+        
+            view2name = "\"" + schema + "\".\"map" + code + "\""
+
+            dropindex2 = "drop index if exists \"" + schema + "\".idx_map_" + code + " ;\n"
+
+            ofp.write( dropindex2  )
+
+            dropstr2 = "drop MATERIALIZED view if exists " + view2name + " cascade ;\n"
+            ofp.write( dropstr2 )       
+
+
+           
+       
+
+            cstr1 = "create  MATERIALIZED VIEW " + view2name + " as\n" 
+
+            if forth:
+                cstr2 = "select t1.ogc_fid, t1.code, t1.fcode, v1.SSS, v1.SSS_Rank, t1.wkb_geometry \n"
+            else:
+                cstr2 = "select t1.ogc_fid, t1.code,  v1.SSS, v1.SSS_Rank, t1.wkb_geometry \n"
+            
+            cstr3 = "  from \"mesh\".\"" + code + "\" t1," + view1name +  " v1 \n"
+            cstr4 = "    where cast( t1.code as character varying) = v1.code; \n"
+            ofp.write( cstr1 )
+            ofp.write( cstr2 )
+            ofp.write( cstr3 )
+            ofp.write( cstr4 )
+
+            indexstr = "create unique index idx_map_" + code + " \n"
+            indexstr2 = "on  " + view2name + " (ogc_fid) ;\n"
+
+            ofp.write( indexstr )
+            ofp.write( indexstr2 )
+            ofp.write( " \n" )
+
+
+
 #  add argument forth
 def create_5msql( thirdmesh, schema , ofp, forth ):
     driver = ogr.GetDriverByName('GPKG')
@@ -712,7 +773,7 @@ def create_5msql( thirdmesh, schema , ofp, forth ):
 
             ofp.write( dropindex2  )
 
-            dropstr2 = "drop MATERIALIZED view if exists " + view2name + ";\n"
+            dropstr2 = "drop MATERIALIZED view if exists " + view2name + " cascade ;\n"
             ofp.write( dropstr2 )       
 
 
@@ -720,7 +781,7 @@ def create_5msql( thirdmesh, schema , ofp, forth ):
 
             ofp.write( dropindex  )
 
-            dropstr = "drop MATERIALIZED view if exists " + view1name + ";\n"
+            dropstr = "drop MATERIALIZED view if exists " + view1name + " cascade ;\n"
             ofp.write( dropstr )
 
             cstr = "create  MATERIALIZED VIEW " + view1name + " as\n" 
