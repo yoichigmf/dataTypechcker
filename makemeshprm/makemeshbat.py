@@ -397,12 +397,16 @@ def Create5mandMesh_wlist( param, output_file , meshlist, toolfolder, meshlevel)
      lyr = conn.GetLayer( "mesh" + str(meshlevel) )
 
      if lyr is None:
-        print >> sys.stderr, '[ ERROR ]: layer name = "%s" could not be found in database "%s"' % ( "mesh2nd", second_md )
+        #print >> sys.stderr, '[ ERROR ]: layer name = "%s" could not be found in database "%s"' % ( "mesh2nd", second_md )
         sys.exit( 1 )
 
+   
 
-     toolstr =  basedir + "/hazard_tools/japan-mesh-tool/python/japanmesh/"
+
+     #toolstr =  basedir + "/hazard_tools/japan-mesh-tool/python/japanmesh/"
   
+     toolstr =  toolfolder + "/japan-mesh-tool/python/japanmesh/"
+
      if output_file  is  None:
         outf = sys.stdout
      else:
@@ -413,32 +417,45 @@ def Create5mandMesh_wlist( param, output_file , meshlist, toolfolder, meshlevel)
 
      print( "geometry type " + str(geomtype ))
 
-     for feature in lyr:
-        geom = feature.GetGeometryRef()
-        extent = geom.GetEnvelope()
+     with open( meshlist, "r") as mslist:
 
-        code = feature["code"]
+         mesh_reader = csv.reader(mslist, delimiter=',')
+         for row in mesh_reader:
 
-        print( extent )
+            code = row[0]
 
-        outputstr = outputdir + str(code) + ".gojsonl"
-        cmdstr = "python " + toolstr + "main.py 10  -e " + str(extent[0]) + "," + str(extent[2]) + " " + str(extent[1]) + "," + str(extent[3]) + " -o " + outputstr 
+            print(" code = "+ code)
+
+            lyr.SetAttributeFilter("code = '" + code +"'")
+
+            for feature in lyr:
+                geom = feature.GetGeometryRef()
+                extent = geom.GetEnvelope()
+
+
+
+                print( extent )
+
+                outputstr = outputdir + str(code) + ".gojsonl"
+                cmdstr = "python " + toolstr + "main.py 10  -e " + str(extent[0]) + "," + str(extent[2]) + " " + str(extent[1]) + "," + str(extent[3]) + " -o " + outputstr 
         #print( str(feature.GetField("code")) + "," + str(extent[0]) + "," + str(extent[2]) + " " + str(extent[1]) + "," + str(extent[3]))
-        print( cmdstr , file=outf)
+                print( cmdstr , file=outf)
 
-        ogrstr = "ogr2ogr -f \"GPKG\" -nln " + str(code) + " " + tgMesh + "/"  + str(code) + ".gpkg " + outputstr 
-        print( ogrstr , file=outf)
+                ogrstr = "ogr2ogr -overwrite -f \"GPKG\" -nln " + str(code) + " " + tgMesh + "/"  + str(code) + ".gpkg " + outputstr 
+                print( ogrstr , file=outf)
 
 
-        ogpgstr = "ogr2ogr -f \"PostgreSQL\" PG:\"host=localhost user=" + dbuser + " password=" + dbpassword + " dbname=" + dbname + "\" " + outputstr + " -nln mesh." + str(code) + " -append"
+                ogpgstr = "ogr2ogr -overwrite -f \"PostgreSQL\" PG:\"host=localhost user=" + dbuser + " password=" + dbpassword + " dbname=" + dbname + "\" " + outputstr + " -nln mesh." + str(code) + " "
      #featureCount = lyr.GetFeatureCount()
-        print( ogpgstr , file=outf)
+                print( ogpgstr , file=outf)
+
+                break
      #print("feature count " + str(featureCount))
 
-     print (basedir )
-     print( dbname )
+     #print (basedir )
+     #print( dbname )
 
-     print( tg_md )
+     #print( tg_md )
 
 
 if __name__ == "__main__":
@@ -460,6 +477,8 @@ if __name__ == "__main__":
     meshlist= args.meshlist
 
     #print( "yyy")
+
+    print("bat")
 
     if basedir  is  None:
         basedir ="."
