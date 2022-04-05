@@ -911,7 +911,7 @@ def dummy( param_file , input_path):
             #subprocess.run(cmd_str, shell=True)
 
 
-def   DoOverlay( param_file, workfolder,  logfile, attrflag   ):
+def   DoOverlay( param_file, workfolder,  logfile, attrflag  , thirdmeshf ):
 
     #  パラメータファイル名をユニークファイル名に変更  2022/1/7
     #unique_filename = str(uuid.uuid4())
@@ -930,7 +930,22 @@ def   DoOverlay( param_file, workfolder,  logfile, attrflag   ):
         ovlresult = workfolder + "/ovlresult/"
 
 
+
     thirdmesh = './3rdmesh/mesh3.gpkg'
+
+    if thirdmeshf is not None:
+        thirdmesh = thirdmeshf
+        
+        ovl3rdpath = './workfiles/ovl3rd_mente/'
+        ovlsep  = './workfiles/ovlsplit_mente/'
+        ovlresult  = './workfiles/ovlresult_mente/'
+        if workfolder is not None:
+            ovl3rdpath = workfolder + "/ovl3rd_mente/"
+            ovlsep = workfolder + "/ovlsplit_mente/"
+            ovlresult = workfolder + "/ovlresult_mente/"
+
+
+
 
 
 
@@ -985,6 +1000,9 @@ if __name__ == "__main__":
     #schema = args.schema
     logfile = args.logfile
 
+    thirdmesh = args.thirdmesh
+
+
     attribute = args.ATTRIBUTE
 
     attrflag = True
@@ -993,5 +1011,5 @@ if __name__ == "__main__":
         if attribute == "NONE":
             attrflag = False
 
-    DoOverlay( paramfile, workfolder,  logfile, attrflag   )
+    DoOverlay( paramfile, workfolder,  logfile, attrflag  , thirdmesh  )
 
