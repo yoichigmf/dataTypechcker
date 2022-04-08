@@ -86,7 +86,7 @@ if __name__ == "__main__":
     #   header parameter が 0 より大きい場合スキーマを作成する
     #if header  is not None:
      #   if int(header) > 0:
-     #       doovl.make_thirdmesh_tables( thirdmesh, schema, ofile )
+    doovl.make_thirdmesh_tables_no( meshnof, schema, ofile )
 
     #  load  csv to table script
     doovl.load_csv_tables_meshno( csvpath, meshnof , schema, ofile, log )

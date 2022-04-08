@@ -607,6 +607,40 @@ def make_thirdmesh_tables( thirdmesh, schema , ofp ):
             ofp.write( ");\n\n")
 
 
+def make_thirdmesh_tables_no( meshnof, schema , ofp ):
+
+
+  
+    with open( meshnof, mode="r", encoding='cp932' ) as prmfile:
+
+        csvreader = csv.reader( prmfile )
+
+        for  s_line in csvreader:
+            code = s_line[0] 
+
+
+   
+            
+            scode = code
+            
+            if type( code ) != str:
+                scode = str( code )
+
+            tablename = "\"" + schema + "\".\"" + scode + "\""
+
+  
+
+            ofp.write("create table if not exists " + tablename + "\n" )
+            ofp.write( "(\n")
+            ofp.write( "ogc_fid serial,\n")
+            ofp.write( "code character varying COLLATE pg_catalog.\"default\",\n")
+            #ofp.write( "code character ,\n")
+            ofp.write( "SSS real ,\n")
+            ofp.write( "SSS_RANK  integer ,\n")
+            ofp.write( "primary key( ogc_fid)\n")            
+            ofp.write( ");\n\n")
+
+
 
 
         #print( str(featureCount))
@@ -914,7 +948,7 @@ def  put_log( logfile, filename, rfilename, job,  message ):
 
 
 def truncate_meshno( meshnof , schema, ofile ):
-            
+
     with open( meshnof  , mode="r", encoding='cp932' ) as prmfile:
 
         csvreader = csv.reader( prmfile )
