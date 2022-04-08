@@ -682,24 +682,18 @@ def create_geotiff( thirdmesh, schema , ofield, fieldtype, dbhost, dbname, dbuse
             print( gdalstr )
 
 
+#  集計ビュー作成ファイル利用
 
-def create_5mmapvsql( thirdmesh, schema , ofp, forth ):
+def create_5mmapvsql_usefile( thirdmeshf, schema , ofp, forth ):
 
-    driver = ogr.GetDriverByName('GPKG')
-    dataSource = driver.Open(thirdmesh, 0)
+   
+    with open( thirdmeshf, mode="r", encoding='cp932' ) as prmfile:
 
-    if dataSource is None:
-        print ('Could not open %s' % (thirdmesh))
-    else:
-                          #print( 'Opened %s' % (ifname))
+        csvreader = csv.reader( prmfile )
 
+        for  s_line in csvreader:
+            code = s_line[0] 
 
-        #ofp.write(sctr)
-
-        layer = dataSource.GetLayer()
-
-        for feature in layer:
-            code = feature.GetField("code")
 
             code = str( code )
 
@@ -740,6 +734,89 @@ def create_5mmapvsql( thirdmesh, schema , ofp, forth ):
             ofp.write( indexstr )
             ofp.write( indexstr2 )
             ofp.write( " \n" )
+
+
+#  add argument forth
+def create_5msql( thirdmesh, schema , ofp, forth ):
+    driver = ogr.GetDriverByName('GPKG')
+    dataSource = driver.Open(thirdmesh, 0)
+
+    if dataSource is None:
+        print ('Could not open %s' % (thirdmesh))
+    else:
+                          #print( 'Opened %s' % (ifname))
+
+
+        #ofp.write(sctr)
+
+        layer = dataSource.GetLayer()
+
+        for feature in layer:
+            code = feature.GetField("code")
+
+            code = str( code )
+
+            tablename = "\"" + schema + "\".\"" + code + "\""
+
+            view1name = "\"" + schema + "\".\"mv" + code + "\""
+        
+            view2name = "\"" + schema + "\".\"map" + code + "\""
+
+            dropindex2 = "drop index if exists \"" + schema + "\".idx_map_" + code + " ;\n"
+
+            ofp.write( dropindex2  )
+
+            dropstr2 = "drop MATERIALIZED view if exists " + view2name + " cascade ;\n"
+            ofp.write( dropstr2 )       
+
+
+            dropindex = "drop index if exists \"" + schema +  "\".idx_mv_" + code + " ;\n"
+
+            ofp.write( dropindex  )
+
+            dropstr = "drop MATERIALIZED view if exists " + view1name + " cascade ;\n"
+            ofp.write( dropstr )
+
+            cstr = "create  MATERIALIZED VIEW " + view1name + " as\n" 
+            dstr = " select distinct(code), max(SSS) SSS,max(SSS_Rank) SSS_Rank FROM " + tablename + " group by code;\n"
+
+  
+
+            ofp.write( cstr )
+            ofp.write( dstr )  
+
+            # index
+
+            
+            indexstr = "create unique index idx_mv_" + code + " \n"
+            indexstr2 = "on  " + view1name + " (code) ;\n"
+          
+
+            ofp.write( indexstr )
+            ofp.write( indexstr2 )
+
+            cstr1 = "create  MATERIALIZED VIEW " + view2name + " as\n" 
+
+            if forth:
+                cstr2 = "select t1.ogc_fid, t1.code, t1.fcode, v1.SSS, v1.SSS_Rank, t1.wkb_geometry \n"
+            else:
+                cstr2 = "select t1.ogc_fid, t1.code,  v1.SSS, v1.SSS_Rank, t1.wkb_geometry \n"
+            
+            cstr3 = "  from \"mesh\".\"" + code + "\" t1," + view1name +  " v1 \n"
+            cstr4 = "    where cast( t1.code as character varying) = v1.code; \n"
+            ofp.write( cstr1 )
+            ofp.write( cstr2 )
+            ofp.write( cstr3 )
+            ofp.write( cstr4 )
+
+            indexstr = "create unique index idx_map_" + code + " \n"
+            indexstr2 = "on  " + view2name + " (ogc_fid) ;\n"
+
+            ofp.write( indexstr )
+            ofp.write( indexstr2 )
+            ofp.write( " \n" )
+
+            
 
 
 
@@ -834,6 +911,57 @@ def  put_log( logfile, filename, rfilename, job,  message ):
 
     logfile.write( dt_str + "," + filename + "," + rfilename + "," + job + "," + message + "\n")
         
+
+
+def truncate_meshno( meshnof , schema, ofile ):
+            
+    with open( meshnof  , mode="r", encoding='cp932' ) as prmfile:
+
+        csvreader = csv.reader( prmfile )
+
+        for  s_line in csvreader:
+            meshno = s_line[0] 
+
+            tstr = "truncate table \"" + schema + "\".\"" + meshno + "\";\n"
+
+            ofile.write( tstr )
+
+       
+
+
+                  #print( istr )
+
+
+def load_csv_tables_meshno( csvpath, meshnof , schema, ofile, log ):
+
+        
+    with open( meshnof  , mode="r", encoding='cp932' ) as prmfile:
+
+        csvreader = csv.reader( prmfile )
+
+        for  s_line in csvreader:
+            meshno = s_line[0] 
+
+
+            files = glob.glob( csvpath + "/*_" + meshno + ".csv")
+            for file in files:
+                 basename = os.path.basename(file)
+                 #print(basename)
+                 meshno = basename[7:15]
+                 # print( meshno )
+                 #nfile = file
+                 nfile =  file.replace("\\", "/")
+
+                 istr = "\\copy \"" + schema + "\".\"" + meshno + "\" (code,SSS,SSS_Rank) from " + "\'" + nfile + "\'  WITH CSV HEADER;\n"
+
+                #put_log
+                 ofile.write( istr )
+
+
+                  #print( istr )
+
+
+
 
 # パラメーターファイル指定  ファイル番号単位 CSV ロード        
 
