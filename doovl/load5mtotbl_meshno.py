@@ -40,7 +40,7 @@ if __name__ == "__main__":
 
     #schema = 'tdmesh'
 
-    if meshnof = is None:
+    if meshnof  is None:
          print("no mesh number file")
          exit()
 
@@ -53,11 +53,21 @@ if __name__ == "__main__":
     if outputfile is not None:
         ofile = open( outputfile, "w", encoding="cp932")
 
-    
+    #csv_folder 
          
     csvpath = './workfiles/ovlresult/'
     if workfolder is not None:
-        csvpath = workfolder + '/ovlresult/'
+
+        if csv_folder is not None:
+            csvpath = workfolder + '/' + csv_folder
+
+        else:
+            csvpath = workfolder + '/ovlresult'
+    else:
+
+        if csv_folder is not None:
+            csvpath = './workfiles/' + csv_folder
+
 
  
 
