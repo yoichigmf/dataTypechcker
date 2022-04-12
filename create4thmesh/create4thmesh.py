@@ -63,7 +63,7 @@ def create4thmesh( thirdmesh, schema,  tablename, dbhost, dbname, dbuser, dbpass
                     print( jstr , file=gsl)
                     print( jstr )
             
-        ogrstr = "ogr2ogr -f \"GPKG\" " + gpkg + " " + jsonf + " 4thmesh"
+        ogrstr = "ogr2ogr -f \"GPKG\" " + gpkg + " " + jsonf + " "
      
 
         res = subprocess.run( ogrstr, shell=True, text=True)
