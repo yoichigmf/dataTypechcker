@@ -70,7 +70,7 @@ def create4thmesh( thirdmesh, schema,  tablename, dbhost, dbname, dbuser, dbpass
 
         print( ogrstr )
 
-        ogpgstr = "ogr2ogr -f \"PostgreSQL\" PG:\"host=" + dbhost + " user=" + dbuser + " password=" + dbpasswd + " dbname=" + dbname + "\" " +  " -nln "+ schema  + "." + tablename  + " -append " + gpkg
+        ogpgstr = "ogr2ogr -f \"PostgreSQL\" PG:\"host=" + dbhost + " user=" + dbuser + " password=" + dbpasswd + " dbname=" + dbname + "\" " +  " -nln "+ schema  + "." + tablename  + " -overwrite " + gpkg
 
         res = subprocess.run( ogpgstr, shell=True, text=True)
         print( ogpgstr )
